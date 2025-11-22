@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Whispering Plains – Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #05080b;
+      --card: #101820;
+      --card-soft: #0b141d;
+      --accent: #7cff7c;
+      --accent-soft: rgba(124, 255, 124, 0.18);
+      --accent2: #68c2ff;
+      --text: #f5f5f5;
+      --muted: #9aa5b8;
+      --danger: #ff6b6b;
+      --border: #1c2835;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: radial-gradient(circle at top, #182637 0, #05080b 55%, #000 100%);
+      color: var(--text);
+    }
+
+    .shell {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 1.9rem;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+    }
+
+    .sub {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--accent-soft);
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.9fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 800px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      padding: 12px 12px 10px;
+    }
+
+    .card-soft {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--card-soft);
+      padding: 12px 12px 10px;
+    }
+
+    .realm-banner {
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: linear-gradient(
+        120deg,
+        rgba(124, 255, 124, 0.15),
+        rgba(104, 194, 255, 0.15)
+      );
+      border: 1px solid rgba(124, 255, 124, 0.4);
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+
+    .realm-name {
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .realm-title {
+      font-size: 1.05rem;
+      margin-top: 2px;
+    }
+
+    .realm-text {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .battle-layout {
+      display: grid;
+      grid-template-rows: auto auto;
+      gap: 10px;
+    }
+
+    .battle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .creature-panel {
+      flex: 1;
+      border-radius: 12px;
+      padding: 10px;
+      background: radial-gradient(circle at top, #1b2838 0, #0b1118 55%);
+      border: 1px solid #222f40;
+      position: relative;
+      min-height: 110px;
+    }
+
+    .creature-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .creature-level {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .hp-bar-shell {
+      margin-top: 6px;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: #111821;
+      overflow: hidden;
+      border: 1px solid #243243;
+    }
+
+    .hp-bar {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #54ff9c, #7cff7c);
+      width: 100%;
+      transition: width 0.25s;
+    }
+
+    .hp-text {
+      margin-top: 3px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .creature-ascii {
+      position: absolute;
+      font-size: 1.8rem;
+      right: 10px;
+      bottom: 8px;
+      opacity: 0.9;
+    }
+
+    .creature-ascii.enemy {
+      left: 10px;
+      right: auto;
+      transform: scaleX(-1);
+    }
+
+    .type-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.45);
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .type-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .type-nature { background: #7cff7c; }
+    .type-flame { background: #ff8b63; }
+    .type-air { background: #68c2ff; }
+
+    .battle-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    button {
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 7px 10px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    button.secondary {
+      border-color: var(--accent2);
+      color: var(--accent2);
+      background: rgba(104, 194, 255, 0.15);
+    }
+
+    button.danger {
+      border-color: var(--danger);
+      color: var(--danger);
+      background: rgba(255, 107, 107, 0.18);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    button:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+
+    .log {
+      max-height: 230px;
+      overflow-y: auto;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .log-entry {
+      margin-bottom: 4px;
+    }
+
+    .log-entry strong {
+      color: #ffffff;
+    }
+
+    .starter-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .starter-card {
+      border-radius: 12px;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .starter-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-soft);
+    }
+
+    .starter-name {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .starter-ascii {
+      font-size: 1.6rem;
+      position: absolute;
+      right: 6px;
+      bottom: 4px;
+      opacity: 0.9;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 0.75rem;
+    }
+
+    .chip {
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.5);
+      color: var(--muted);
+    }
+
+    .money-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.4);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .money-pill strong {
+      color: var(--accent2);
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <div class="top">
+    <h1>Whispering Plains</h1>
+    <p class="sub">
+      A small demo of your mythological creature game – start your journey, choose a starter,
+      and battle wild spirits in the first realm.
+    </p>
+    <div class="pill">
+      <span class="pill-dot"></span>
+      Realm 1 · Prototype build
+    </div>
+  </div>
+
+  <div class="realm-banner">
+    <div class="realm-name">Starting Realm</div>
+    <div class="realm-title">Whispering Plains</div>
+    <div class="realm-text">
+      Rolling meadows, old forests and wandering winds that seem to whisper.
+      Gentle spirits live here – but stronger mythic creatures watch from the treeline.
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:14px;">
+    <!-- LEFT: Battle / Starters -->
+    <div class="card" id="leftPanel">
+      <!-- content replaced by JS -->
+    </div>
+
+    <!-- RIGHT: Info / Log -->
+    <div class="card-soft">
+      <h2>Activity Log</h2>
+      <div class="money-pill" id="moneyDisplay">
+        Essence: <strong>0</strong>
+      </div>
+      <div class="chips">
+        <div class="chip" id="teamCountChip">Team: 0 / 3</div>
+        <div class="chip" id="captureRateChip">Base capture rate: 35%</div>
+      </div>
+      <div class="log" id="log" style="margin-top:8px;"></div>
+      <div class="hint">
+        Tip: This is just a first prototype – later you can add more realms, creatures, animations
+        and proper art instead of emoji.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ====== DATA MODELS ======
+  const TYPES = {
+    NATURE: "Nature",
+    FLAME: "Flame",
+    AIR: "Air"
+  };
+
+  // Simple type effectiveness table
+  // key: atkType-defType => multiplier
+  const TYPE_EFFECT = {
+    "Nature-Flame": 0.5,
+    "Nature-Air": 1,
+    "Nature-Nature": 1,
+    "Flame-Nature": 1.5,
+    "Flame-Air": 0.75,
+    "Flame-Flame": 1,
+    "Air-Flame": 1.5,
+    "Air-Nature": 0.75,
+    "Air-Air": 1
+  };
+
+  const starters = [
+    {
+      id: "spriglet",
+      name: "Spriglet",
+      type: TYPES.NATURE,
+      maxHp: 38,
+      attack: 9,
+      speed: 7,
+      ascii: "🦌",
+      description: "A small deer-like spirit of the plains. Calm, sturdy and good at recovering.",
+      moves: [
+        { name: "Leaf Nudge", power: 8, type: TYPES.NATURE },
+        { name: "Root Bind", power: 10, type: TYPES.NATURE }
+      ]
+    },
+    {
+      id: "embercub",
+      name: "Embercub",
+      type: TYPES.FLAME,
+      maxHp: 32,
+      attack: 11,
+      speed: 8,
+      ascii: "🦁",
+      description: "A fiery lion cub born from campfire embers. Fast and aggressive.",
+      moves: [
+        { name: "Ember Swipe", power: 10, type: TYPES.FLAME },
+        { name: "Blaze Pounce", power: 12, type: TYPES.FLAME }
+      ]
+    },
+    {
+      id: "gustling",
+      name: "Gustling",
+      type: TYPES.AIR,
+      maxHp: 30,
+      attack: 9,
+      speed: 10,
+      ascii: "🦉",
+      description: "A tiny owl-spirit woven from wind. Nimble and evasive.",
+      moves: [
+        { name: "Wind Peck", power: 9, type: TYPES.AIR },
+        { name: "Gale Push", power: 11, type: TYPES.AIR }
+      ]
+    }
+  ];
+
+  // Wild creatures in Whispering Plains
+  const wildCreatures = [
+    {
+      id: "meadowpup",
+      name: "Meadowpup",
+      type: TYPES.NATURE,
+      maxHp: 26,
+      attack: 7,
+      speed: 6,
+      ascii: "🐕",
+      moves: [{ name: "Tackle", power: 7, type: TYPES.NATURE }]
+    },
+    {
+      id: "barkling",
+      name: "Barkling",
+      type: TYPES.NATURE,
+      maxHp: 30,
+      attack: 8,
+      speed: 5,
+      ascii: "🌿",
+      moves: [{ name: "Branch Swipe", power: 8, type: TYPES.NATURE }]
+    },
+    {
+      id: "winglet",
+      name: "Winglet",
+      type: TYPES.AIR,
+      maxHp: 24,
+      attack: 8,
+      speed: 9,
+      ascii: "🕊️",
+      moves: [{ name: "Feather Flick", power: 8, type: TYPES.AIR }]
+    },
+    {
+      id: "sparkling",
+      name: "Sparkling",
+      type: TYPES.FLAME,
+      maxHp: 25,
+      attack: 9,
+      speed: 7,
+      ascii: "✨",
+      moves: [{ name: "Spark Bite", power: 9, type: TYPES.FLAME }]
+    }
+  ];
+
+  // ====== GAME STATE ======
+  let playerTeam = [];
+  let currentPlayerIndex = 0;
+  let essence = 0;
+  let baseCaptureRate = 0.35;
+
+  let currentWild = null;
+  let state = "CHOOSE_STARTER"; // or "IN_BATTLE"
+  let selectedStarterId = null;
+
+  const leftPanel = document.getElementById("leftPanel");
+  const logEl = document.getElementById("log");
+  const moneyDisplay = document.getElementById("moneyDisplay");
+  const teamCountChip = document.getElementById("teamCountChip");
+  const captureRateChip = document.getElementById("captureRateChip");
+
+  function log(msg, type = "normal") {
+    const div = document.createElement("div");
+    div.className = "log-entry";
+    if (type === "good") {
+      div.innerHTML = `<strong>+ </strong>${msg}`;
+    } else if (type === "bad") {
+      div.innerHTML = `<strong>! </strong>${msg}`;
+    } else {
+      div.textContent = msg;
+    }
+    logEl.prepend(div);
+  }
+
+  function updateMeta() {
+    moneyDisplay.innerHTML = `Essence: <strong>${essence}</strong>`;
+    teamCountChip.textContent = `Team: ${playerTeam.length} / 3`;
+    captureRateChip.textContent = `Base capture rate: ${Math.round(baseCaptureRate * 100)}%`;
+  }
+
+  // ====== STARTER SELECTION ======
+  function renderStarterSelection() {
+    const html = `
+      <h2>Choose your first spirit</h2>
+      <p class="sub">
+        Every tamer begins in Whispering Plains with one bonded creature.
+        Choose carefully – this partner will carry you through the early battles.
+      </p>
+      <div class="starter-grid">
+        ${starters.map(s => `
+          <div class="starter-card ${selectedStarterId === s.id ? "selected" : ""}" data-id="${s.id}">
+            <div class="starter-name">${s.name}</div>
+            <div class="type-tag">
+              <span class="type-dot ${
+                s.type === TYPES.NATURE ? "type-nature" :
+                s.type === TYPES.FLAME ? "type-flame" : "type-air"
+              }"></span>
+              <span>${s.type}</span>
+            </div>
+            <div style="margin-top:4px;font-size:0.78rem;color:var(--muted);">
+              ${s.description}
+            </div>
+            <div class="starter-ascii">${s.ascii}</div>
+          </div>
+        `).join("")}
+      </div>
+      <div class="hint">
+        Tap a card to select it, then press "Begin Journey".
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button id="beginBtn" disabled>Begin journey</button>
+      </div>
+    `;
+    leftPanel.innerHTML = html;
+
+    document.querySelectorAll(".starter-card").forEach(card => {
+      card.addEventListener("click", () => {
+        selectedStarterId = card.getAttribute("data-id");
+        document.querySelectorAll(".starter-card").forEach(c => c.classList.remove("selected"));
+        card.classList.add("selected");
+        document.getElementById("beginBtn").disabled = false;
+      });
+    });
+
+    document.getElementById("beginBtn").addEventListener("click", () => {
+      if (!selectedStarterId) return;
+      const chosen = starters.find(s => s.id === selectedStarterId);
+      addCreatureToTeam(chosen);
+      log(`You bonded with ${chosen.name}. Your journey in Whispering Plains begins.`, "good");
+      state = "IN_BATTLE";
+      startNewEncounter();
+    });
+  }
+
+  function addCreatureToTeam(baseData) {
+    if (playerTeam.length >= 3) {
+      log("Your team is full. You can't add more spirits yet.", "bad");
+      return;
+    }
+    const instance = {
+      id: baseData.id + "_" + Date.now(),
+      baseId: baseData.id,
+      name: baseData.name,
+      type: baseData.type,
+      maxHp: baseData.maxHp,
+      hp: baseData.maxHp,
+      attack: baseData.attack,
+      speed: baseData.speed,
+      ascii: baseData.ascii,
+      moves: baseData.moves,
+      level: 3
+    };
+    playerTeam.push(instance);
+    currentPlayerIndex = playerTeam.length - 1;
+    updateMeta();
+  }
+
+  // ====== ENCOUNTERS ======
+  function startNewEncounter() {
+    const wildBase = wildCreatures[Math.floor(Math.random() * wildCreatures.length)];
+    const level = 2 + Math.floor(Math.random() * 3); // 2-4
+    currentWild = {
+      name: wildBase.name,
+      type: wildBase.type,
+      maxHp: wildBase.maxHp + level * 2,
+      hp: wildBase.maxHp + level * 2,
+      attack: wildBase.attack + level,
+      speed: wildBase.speed + level,
+      ascii: wildBase.ascii,
+      moves: wildBase.moves,
+      level
+    };
+    renderBattle();
+    log(`A wild ${currentWild.name} (Lv.${currentWild.level}) appeared in the tall grass.`, "normal");
+  }
+
+  function renderBattle() {
+    if (playerTeam.length === 0) {
+      leftPanel.innerHTML = `
+        <h2>No spirits in your team</h2>
+        <p class="sub">Your team is empty. Refresh the page to restart the demo.</p>
+      `;
+      return;
+    }
+
+    const active = playerTeam[currentPlayerIndex];
+
+    const playerTypeClass =
+      active.type === TYPES.NATURE ? "type-nature" :
+      active.type === TYPES.FLAME ? "type-flame" : "type-air";
+
+    const enemyTypeClass =
+      currentWild.type === TYPES.NATURE ? "type-nature" :
+      currentWild.type === TYPES.FLAME ? "type-flame" : "type-air";
+
+    const hpPlayerPercent = Math.max(0, (active.hp / active.maxHp) * 100);
+    const hpEnemyPercent = Math.max(0, (currentWild.hp / currentWild.maxHp) * 100);
+
+    const teamButtons = playerTeam.map((c, idx) => `
+      <button ${idx === currentPlayerIndex || c.hp <= 0 ? "disabled" : ""} data-switch="${idx}">
+        ${c.name} ${c.hp <= 0 ? "(fainted)" : `(Lv.${c.level})`}
+      </button>
+    `).join("");
+
+    leftPanel.innerHTML = `
+      <div class="battle-layout">
+        <div class="battle-row">
+          <div class="creature-panel">
+            <div class="creature-name">${currentWild.name}</div>
+            <div class="creature-level">Lv.${currentWild.level}</div>
+            <div class="type-tag">
+              <span class="type-dot ${enemyTypeClass}"></span>
+              <span>${currentWild.type}</span>
+            </div>
+            <div class="hp-bar-shell">
+              <div class="hp-bar" style="width:${hpEnemyPercent}%;"></div>
+            </div>
+            <div class="hp-text">
+              HP: ${currentWild.hp} / ${currentWild.maxHp}
+            </div>
+            <div class="creature-ascii enemy">${currentWild.ascii}</div>
+          </div>
+        </div>
+
+        <div class="battle-row">
+          <div class="creature-panel">
+            <div class="creature-name">${active.name}</div>
+            <div class="creature-level">Lv.${active.level}</div>
+            <div class="type-tag">
+              <span class="type-dot ${playerTypeClass}"></span>
+              <span>${active.type}</span>
+            </div>
+            <div class="hp-bar-shell">
+              <div class="hp-bar" style="width:${hpPlayerPercent}%;"></div>
+            </div>
+            <div class="hp-text">
+              HP: ${active.hp} / ${active.maxHp}
+            </div>
+            <div class="creature-ascii">${active.ascii}</div>
+
+            <div class="battle-actions">
+              ${active.moves.map((m, idx) => `
+                <button data-move="${idx}">${m.name}</button>
+              `).join("")}
+              <button class="secondary" id="captureBtn">Capture</button>
+              <button class="danger" id="runBtn">Run</button>
+            </div>
+
+            <div class="hint">
+              Choose a move, try to capture, or switch spirits if your partner is low.
+            </div>
+
+            <div class="battle-actions" style="margin-top:6px;">
+              ${teamButtons}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    leftPanel.querySelectorAll("button[data-move]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.getAttribute("data-move"), 10);
+        playerTurnMove(idx);
+      });
+    });
+
+    const captureBtn = document.getElementById("captureBtn");
+    captureBtn.addEventListener("click", handleCaptureAttempt);
+
+    const runBtn = document.getElementById("runBtn");
+    runBtn.addEventListener("click", () => {
+      log("You retreated to a safer patch of plains.", "bad");
+      startNewEncounter();
+    });
+
+    leftPanel.querySelectorAll("button[data-switch]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.getAttribute("data-switch"), 10);
+        switchActive(idx);
+      });
+    });
+  }
+
+  function typeMultiplier(atkType, defType) {
+    const key = `${atkType}-${defType}`;
+    return TYPE_EFFECT[key] || 1;
+  }
+
+  function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function playerTurnMove(moveIndex) {
+    const active = playerTeam[currentPlayerIndex];
+    if (active.hp <= 0) {
+      log(`${active.name} has fainted and cannot fight.`, "bad");
+      return;
+    }
+    if (!currentWild || currentWild.hp <= 0) {
+      log("There's nothing to attack – the wild spirit has already faded.", "bad");
+      return;
+    }
+
+    const move = active.moves[moveIndex];
+    const mult = typeMultiplier(move.type, currentWild.type);
+    const base = move.power + active.attack;
+    const damage = Math.max(3, Math.round(base * mult * (0.7 + Math.random() * 0.4)));
+
+    currentWild.hp = Math.max(0, currentWild.hp - damage);
+
+    let msg = `${active.name} used ${move.name}. It dealt ${damage} damage.`;
+    if (mult > 1) msg += " It was super effective!";
+    if (mult < 1) msg += " It wasn't very effective.";
+    log(msg, "normal");
+
+    if (currentWild.hp <= 0) {
+      log(`The wild ${currentWild.name} calmed and faded back into the plains.`, "good");
+      const gain = randomInt(4, 10);
+      essence += gain;
+      log(`You gathered ${gain} essence from the encounter.`, "good");
+      updateMeta();
+      setTimeout(startNewEncounter, 700);
+      renderBattle();
+      return;
+    }
+
+    setTimeout(enemyTurn, 450);
+    renderBattle();
+  }
+
+  function enemyTurn() {
+    if (!currentWild || currentWild.hp <= 0) return;
+    const active = playerTeam[currentPlayerIndex];
+    if (!active || active.hp <= 0) return;
+
+    const move = currentWild.moves[0];
+    const mult = typeMultiplier(move.type, active.type);
+    const base = move.power + currentWild.attack;
+    const damage = Math.max(2, Math.round(base * mult * (0.7 + Math.random() * 0.4)));
+
+    active.hp = Math.max(0, active.hp - damage);
+
+    let msg = `Wild ${currentWild.name} used ${move.name}. ${active.name} took ${damage} damage.`;
+    if (mult > 1) msg += " It's very effective!";
+    if (mult < 1) msg += " It's not very effective.";
+    log(msg, "normal");
+
+    if (active.hp <= 0) {
+      log(`${active.name} has fainted.`, "bad");
+      const aliveIndex = playerTeam.findIndex(c => c.hp > 0);
+      if (aliveIndex === -1) {
+        log("All your spirits have fainted. The plains grow quiet… (demo over)", "bad");
+      } else {
+        currentPlayerIndex = aliveIndex;
+        log(`You send out ${playerTeam[currentPlayerIndex].name}!`, "good");
+      }
+    }
+    renderBattle();
+  }
+
+  function handleCaptureAttempt() {
+    if (!currentWild || currentWild.hp <= 0) {
+      log("There's nothing left to capture here.", "bad");
+      return;
+    }
+    if (playerTeam.length >= 3) {
+      log("Your team is full – you cannot bond with more spirits yet.", "bad");
+      return;
+    }
+
+    const hpFactor = 1 - (currentWild.hp / currentWild.maxHp); // closer to 1 when low
+    const roll = Math.random();
+    const chance = baseCaptureRate + hpFactor * 0.45; // boost when low HP
+
+    if (roll <= chance) {
+      log(`You extended your hand… the ${currentWild.name} accepted your call.`, "good");
+      const base = {
+        id: currentWild.id || currentWild.name.toLowerCase(),
+        name: currentWild.name,
+        type: currentWild.type,
+        maxHp: currentWild.maxHp,
+        attack: currentWild.attack,
+        speed: currentWild.speed,
+        ascii: currentWild.ascii,
+        moves: currentWild.moves
+      };
+      addCreatureToTeam(base);
+      startNewEncounter();
+    } else {
+      log(`The ${currentWild.name} hesitated and pulled back. Try weakening it more.`, "normal");
+      enemyTurn();
+    }
+  }
+
+  function switchActive(idx) {
+    if (idx < 0 || idx >= playerTeam.length) return;
+    if (playerTeam[idx].hp <= 0) {
+      log(`${playerTeam[idx].name} has fainted and cannot be switched in.`, "bad");
+      return;
+    }
+    currentPlayerIndex = idx;
+    log(`You sent out ${playerTeam[idx].name}.`, "good");
+    renderBattle();
+  }
+
+  // ====== INIT ======
+  function init() {
+    updateMeta();
+    log("Welcome to Whispering Plains. This is just a small demo of the battle & capture loop.");
+    log("Choose your starter spirit to begin.", "normal");
+    renderStarterSelection();
+  }
+
+  init();
+</script>
+</body>
+</html>
