@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Aquarium UI Mock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% -20%, rgba(255,255,255,0.4) 0, rgba(255,255,255,0) 55%),
+        linear-gradient(to bottom, #33a4ff 0, #0d6fbf 45%, #07426e 100%);
+    }
+
+    /* top hud */
+    .top-hud {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .hud-bar {
+      flex: 1;
+      max-width: 33%;
+      height: 32px;
+      border-radius: 18px;
+      background: linear-gradient(to bottom, #2f7ad8, #1752a6);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      border: 2px solid #ffffff55;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      color: #fff;
+      font-size: 13px;
+      pointer-events: auto;
+    }
+
+    .hud-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-pill {
+      min-width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: #ffce00;
+      border: 2px solid #ffffff99;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #9b4200;
+    }
+
+    .hud-fill {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-value {
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.35);
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .hud-plus {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #46d158;
+      border: 2px solid #ffffffaa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    /* small fish count on right */
+    .fish-count {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: linear-gradient(to bottom, #2f7ad8, #1752a6);
+      border: 2px solid #ffffff55;
+      color: #fff;
+      font-size: 12px;
+      pointer-events: auto;
+    }
+
+    .fish-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ff7b27;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      border: 2px solid #ffffffaa;
+    }
+
+    .top-right-stack {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .round-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffffffee 0, #d3e9ff 10%, #168cd1 60%, #09558b 100%);
+      border: 3px solid #f4c54a;
+      box-shadow: 0 3px 5px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #004b71;
+      pointer-events: auto;
+    }
+
+    /* side buttons */
+    .side-left, .side-right {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .side-left { left: 12px; }
+    .side-right { right: 12px; }
+
+    /* bottom bar */
+    .bottom-bar {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .bottom-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cube-btn {
+      width: 70px;
+      height: 70px;
+      border-radius: 18px;
+      background: radial-gradient(circle at 25% 25%, #ffffffdd 0, #bfe4ff 20%, #1aaae3 55%, #006d9e 95%);
+      border: 4px solid #f1c84b;
+      box-shadow: 0 3px 5px rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: #00537c;
+    }
+
+    .info-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 25% 25%, #ffffffdd 0, #cce8ff 20%, #1aaae3 55%, #00639a 95%);
+      border: 3px solid #f1c84b;
+      box-shadow: 0 3px 5px rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #004a6b;
+    }
+
+    .bottom-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .square-btn {
+      width: 58px;
+      height: 58px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 25% 25%, #ffffffdd 0, #cce8ff 20%, #1aaae3 55%, #00639a 95%);
+      border: 3px solid #f1c84b;
+      box-shadow: 0 3px 5px rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      color: #004a6b;
+    }
+
+    .bottom-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* sand + rock */
+    .sand {
+      position: absolute;
+      bottom: -10%;
+      left: -5%;
+      right: -5%;
+      height: 30%;
+      background:
+        radial-gradient(circle at 50% -20%, rgba(255,255,255,0.3) 0, rgba(255,255,255,0) 60%),
+        radial-gradient(circle at 10% 10%, rgba(255,255,255,0.3) 0, rgba(255,255,255,0) 55%),
+        linear-gradient(to top, #c59a5c 0, #b2823f 55%, rgba(0,0,0,0) 100%);
+      border-radius: 50% 50% 0 0;
+      box-shadow: 0 -6px 12px rgba(0,0,0,0.4) inset;
+    }
+
+    .rock {
+      position: absolute;
+      bottom: 10%;
+      right: 20%;
+      width: 110px;
+      height: 110px;
+      background: radial-gradient(circle at 20% 20%, #fefefe 0, #d0d0d0 20%, #7b7b7b 60%, #3f3f3f 100%);
+      border-radius: 40% 60% 55% 45%;
+      box-shadow: -8px -10px 8px rgba(255,255,255,0.3) inset,
+                  0 8px 10px rgba(0,0,0,0.7);
+      transform: rotate(-18deg);
+    }
+
+    /* bubble column */
+    .bubble-column {
+      position: absolute;
+      bottom: 10%;
+      right: 10%;
+      width: 80px;
+      height: 70%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .bubble {
+      position: absolute;
+      bottom: -40px;
+      left: 50%;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.8);
+      background: radial-gradient(circle at 30% 30%, #ffffffaa 0, #ffffff22 40%, transparent 70%);
+      transform: translateX(-50%);
+      animation: rise 6s linear infinite;
+    }
+
+    .bubble.small { width: 8px; height: 8px; animation-duration: 4.5s; }
+    .bubble.big   { width: 18px; height: 18px; animation-duration: 7s; }
+
+    .bubble:nth-child(1) { animation-delay: 0s; left: 40%; }
+    .bubble:nth-child(2) { animation-delay: 1s; left: 55%; }
+    .bubble:nth-child(3) { animation-delay: 2s; left: 47%; }
+    .bubble:nth-child(4) { animation-delay: 3s; left: 60%; }
+    .bubble:nth-child(5) { animation-delay: 4s; left: 50%; }
+    .bubble:nth-child(6) { animation-delay: 5s; left: 43%; }
+
+    @keyframes rise {
+      0%   { transform: translate(-50%, 0) scale(0.9); opacity: 0; }
+      10%  { opacity: 1; }
+      100% { transform: translate(-50%, -110vh) scale(1.1); opacity: 0; }
+    }
+
+    /* center note text */
+    .center-note {
+      position: absolute;
+      top: 16%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.5);
+      color: #fff;
+      border-radius: 18px;
+      padding: 6px 14px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
+    .center-note button {
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 14px;
+      font-weight: 900;
+      color: #0a4a6f;
+      background: #ffffffdd;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<div class="scene">
+  <!-- Top HUD -->
+  <div class="top-hud">
+    <div class="hud-bar">
+      <div class="hud-label">
+        <div class="hud-pill">Lv</div>
+        <span>0</span>
+      </div>
+      <div class="hud-fill">
+        <div class="hud-value">XP 2</div>
+        <div class="hud-plus">+</div>
+      </div>
+    </div>
+
+    <div class="hud-bar">
+      <div class="hud-label">
+        <div class="hud-pill">💰</div>
+        <span>Coins</span>
+      </div>
+      <div class="hud-fill">
+        <div class="hud-value">380</div>
+        <div class="hud-plus">+</div>
+      </div>
+    </div>
+
+    <div class="top-right-stack">
+      <div class="hud-bar" style="max-width: 150px;">
+        <div class="hud-label">
+          <div class="hud-pill" style="background:#3fcf5b;">💵</div>
+          <span>20</span>
+        </div>
+      </div>
+      <div class="fish-count">
+        <div class="fish-icon">🐟</div>
+        <div>2 / 10</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Center notification -->
+  <div class="center-note">
+    <span>Your fish are sick</span>
+    <button>i</button>
+    <button>✕</button>
+  </div>
+
+  <!-- Side buttons -->
+  <div class="side-left">
+    <div class="round-btn">📷</div>
+  </div>
+  <div class="side-right">
+    <div class="round-btn">🎬</div>
+  </div>
+
+  <!-- Bottom UI -->
+  <div class="bottom-bar">
+    <div class="bottom-left">
+      <div class="cube-btn">🐠</div>
+      <div class="info-btn">i</div>
+    </div>
+
+    <div class="bottom-center">
+      <div class="square-btn">🏠</div>
+      <div class="square-btn">🍽</div>
+      <div class="square-btn">🌙</div>
+      <div class="square-btn">✊</div>
+      <div class="square-btn">⚙️</div>
+    </div>
+
+    <div class="bottom-right">
+      <div class="square-btn">🧺</div>
+      <div class="round-btn" style="font-size:26px;">≡</div>
+    </div>
+  </div>
+
+  <!-- Sand and rock -->
+  <div class="sand"></div>
+  <div class="rock"></div>
+
+  <!-- Bubble column -->
+  <div class="bubble-column">
+    <div class="bubble big"></div>
+    <div class="bubble small"></div>
+    <div class="bubble"></div>
+    <div class="bubble small"></div>
+    <div class="bubble"></div>
+    <div class="bubble big"></div>
+  </div>
+</div>
+</body>
+</html>
