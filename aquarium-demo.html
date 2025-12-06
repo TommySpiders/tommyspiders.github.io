@@ -1,428 +1,1048 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Aquarium UI Mock</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Aquarium Life</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
     }
 
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #000;
-      overflow: hidden;
-    }
-
-    .scene {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at 50% -20%, rgba(255,255,255,0.4) 0, rgba(255,255,255,0) 55%),
-        linear-gradient(to bottom, #33a4ff 0, #0d6fbf 45%, #07426e 100%);
-    }
-
-    /* top hud */
-    .top-hud {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      right: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      pointer-events: none;
-    }
-
-    .hud-bar {
-      flex: 1;
-      max-width: 33%;
-      height: 32px;
-      border-radius: 18px;
-      background: linear-gradient(to bottom, #2f7ad8, #1752a6);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-      border: 2px solid #ffffff55;
-      display: flex;
-      align-items: center;
-      padding: 0 10px;
-      color: #fff;
-      font-size: 13px;
-      pointer-events: auto;
-    }
-
-    .hud-label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .hud-pill {
-      min-width: 22px;
-      height: 22px;
-      border-radius: 999px;
-      background: #ffce00;
-      border: 2px solid #ffffff99;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
-      color: #9b4200;
-    }
-
-    .hud-fill {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .hud-value {
-      padding: 3px 8px;
-      border-radius: 12px;
-      background: rgba(0,0,0,0.35);
-      font-weight: 600;
-      font-size: 12px;
-    }
-
-    .hud-plus {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #46d158;
-      border: 2px solid #ffffffaa;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    /* small fish count on right */
-    .fish-count {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: linear-gradient(to bottom, #2f7ad8, #1752a6);
-      border: 2px solid #ffffff55;
-      color: #fff;
-      font-size: 12px;
-      pointer-events: auto;
-    }
-
-    .fish-icon {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: #ff7b27;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      border: 2px solid #ffffffaa;
-    }
-
-    .top-right-stack {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .round-btn {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #ffffffee 0, #d3e9ff 10%, #168cd1 60%, #09558b 100%);
-      border: 3px solid #f4c54a;
-      box-shadow: 0 3px 5px rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      color: #004b71;
-      pointer-events: auto;
-    }
-
-    /* side buttons */
-    .side-left, .side-right {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
+      background: radial-gradient(circle at 20% 0%, #182641, #050814 60%, #020308);
+      color: #f5f5f5;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      align-items: center;
     }
-    .side-left { left: 12px; }
-    .side-right { right: 12px; }
 
-    /* bottom bar */
-    .bottom-bar {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      right: 10px;
+    /* ---------- OVERLAY FOR PORTRAIT MODE ---------- */
+
+    #rotateOverlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 10% 0%, #283b63, #050814 70%);
+      color: #f5f5f5;
+      display: none; /* shown via JS when portrait */
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+      z-index: 9999;
+    }
+
+    #rotateOverlay h1 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    #rotateOverlay p {
+      font-size: 14px;
+      opacity: 0.9;
+      max-width: 320px;
+    }
+
+    #rotateOverlay .icon {
+      font-size: 46px;
+      margin-bottom: 12px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ---------- HUD ---------- */
+
+    #gameRoot {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hud {
+      width: 100%;
+      max-width: 980px;
+      padding: 8px 14px;
+      margin-top: 6px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: linear-gradient(
+        120deg,
+        rgba(9, 24, 56, 0.92),
+        rgba(6, 36, 71, 0.92)
+      );
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .hud-row {
+      display: flex;
       gap: 10px;
-    }
-
-    .bottom-left {
-      display: flex;
       align-items: center;
-      gap: 10px;
+      flex-wrap: wrap;
     }
 
-    .cube-btn {
-      width: 70px;
-      height: 70px;
-      border-radius: 18px;
-      background: radial-gradient(circle at 25% 25%, #ffffffdd 0, #bfe4ff 20%, #1aaae3 55%, #006d9e 95%);
-      border: 4px solid #f1c84b;
-      box-shadow: 0 3px 5px rgba(0,0,0,0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      color: #00537c;
-    }
-
-    .info-btn {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 25% 25%, #ffffffdd 0, #cce8ff 20%, #1aaae3 55%, #00639a 95%);
-      border: 3px solid #f1c84b;
-      box-shadow: 0 3px 5px rgba(0,0,0,0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      color: #004a6b;
-    }
-
-    .bottom-center {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .square-btn {
-      width: 58px;
-      height: 58px;
-      border-radius: 12px;
-      background: radial-gradient(circle at 25% 25%, #ffffffdd 0, #cce8ff 20%, #1aaae3 55%, #00639a 95%);
-      border: 3px solid #f1c84b;
-      box-shadow: 0 3px 5px rgba(0,0,0,0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 26px;
-      color: #004a6b;
-    }
-
-    .bottom-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    /* sand + rock */
-    .sand {
-      position: absolute;
-      bottom: -10%;
-      left: -5%;
-      right: -5%;
-      height: 30%;
-      background:
-        radial-gradient(circle at 50% -20%, rgba(255,255,255,0.3) 0, rgba(255,255,255,0) 60%),
-        radial-gradient(circle at 10% 10%, rgba(255,255,255,0.3) 0, rgba(255,255,255,0) 55%),
-        linear-gradient(to top, #c59a5c 0, #b2823f 55%, rgba(0,0,0,0) 100%);
-      border-radius: 50% 50% 0 0;
-      box-shadow: 0 -6px 12px rgba(0,0,0,0.4) inset;
-    }
-
-    .rock {
-      position: absolute;
-      bottom: 10%;
-      right: 20%;
-      width: 110px;
-      height: 110px;
-      background: radial-gradient(circle at 20% 20%, #fefefe 0, #d0d0d0 20%, #7b7b7b 60%, #3f3f3f 100%);
-      border-radius: 40% 60% 55% 45%;
-      box-shadow: -8px -10px 8px rgba(255,255,255,0.3) inset,
-                  0 8px 10px rgba(0,0,0,0.7);
-      transform: rotate(-18deg);
-    }
-
-    /* bubble column */
-    .bubble-column {
-      position: absolute;
-      bottom: 10%;
-      right: 10%;
-      width: 80px;
-      height: 70%;
-      overflow: hidden;
-      pointer-events: none;
-    }
-
-    .bubble {
-      position: absolute;
-      bottom: -40px;
-      left: 50%;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.8);
-      background: radial-gradient(circle at 30% 30%, #ffffffaa 0, #ffffff22 40%, transparent 70%);
-      transform: translateX(-50%);
-      animation: rise 6s linear infinite;
-    }
-
-    .bubble.small { width: 8px; height: 8px; animation-duration: 4.5s; }
-    .bubble.big   { width: 18px; height: 18px; animation-duration: 7s; }
-
-    .bubble:nth-child(1) { animation-delay: 0s; left: 40%; }
-    .bubble:nth-child(2) { animation-delay: 1s; left: 55%; }
-    .bubble:nth-child(3) { animation-delay: 2s; left: 47%; }
-    .bubble:nth-child(4) { animation-delay: 3s; left: 60%; }
-    .bubble:nth-child(5) { animation-delay: 4s; left: 50%; }
-    .bubble:nth-child(6) { animation-delay: 5s; left: 43%; }
-
-    @keyframes rise {
-      0%   { transform: translate(-50%, 0) scale(0.9); opacity: 0; }
-      10%  { opacity: 1; }
-      100% { transform: translate(-50%, -110vh) scale(1.1); opacity: 0; }
-    }
-
-    /* center note text */
-    .center-note {
-      position: absolute;
-      top: 16%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.5);
-      color: #fff;
-      border-radius: 18px;
-      padding: 6px 14px;
-      font-size: 14px;
-      display: flex;
+    .chip {
+      display: inline-flex;
       align-items: center;
       gap: 6px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.08),
+        rgba(255, 255, 255, 0.04)
+      );
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     }
 
-    .center-note button {
+    .chip-label {
+      opacity: 0.8;
+    }
+
+    .chip-value {
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .chip-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 30% 0%, #ffe268, #f39c12 65%);
+      color: #1c1304;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    }
+
+    .chip-icon.blue {
+      background: radial-gradient(circle at 30% 0%, #7fd0ff, #1e7dd6 65%);
+      color: #02101f;
+    }
+
+    .chip-icon.green {
+      background: radial-gradient(circle at 30% 0%, #a5ffb4, #20b869 65%);
+      color: #021408;
+    }
+
+    .hud-actions button {
       border: none;
-      border-radius: 50%;
-      width: 22px;
-      height: 22px;
-      font-size: 14px;
-      font-weight: 900;
-      color: #0a4a6f;
-      background: #ffffffdd;
+      outline: none;
       cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      background: radial-gradient(circle at 30% 0%, #7fd0ff, #1c7ff0 60%);
+      color: #020811;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+      transition: transform 0.08s ease, box-shadow 0.08s ease,
+        filter 0.08s ease;
+      white-space: nowrap;
+    }
+
+    .hud-actions button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 14px rgba(0, 0, 0, 0.7);
+      filter: brightness(1.06);
+    }
+
+    .hud-actions button:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    }
+
+    .hud-actions button:disabled {
+      opacity: 0.55;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* ---------- TANK ---------- */
+
+    .tank-wrapper {
+      margin-top: 16px;
+      border-radius: 26px;
+      overflow: hidden;
+      box-shadow: 0 20px 55px rgba(0, 0, 0, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      position: relative;
+    }
+
+    #tank {
+      display: block;
+      max-width: 980px;
+      background: radial-gradient(circle at 50% 0%, #4da9ff 0, #00509e 40%, #01233f 100%);
+    }
+
+    .tank-rays {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(
+          ellipse at 10% -20%,
+          rgba(255, 255, 255, 0.18),
+          transparent 60%
+        ),
+        radial-gradient(
+          ellipse at 80% -30%,
+          rgba(255, 255, 255, 0.12),
+          transparent 60%
+        );
+      mix-blend-mode: screen;
+      opacity: 0.4;
+    }
+
+    .tank-bubbles {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(
+          circle at 15% 80%,
+          rgba(255, 255, 255, 0.18),
+          transparent 55%
+        ),
+        radial-gradient(
+          circle at 90% 60%,
+          rgba(255, 255, 255, 0.14),
+          transparent 55%
+        );
+      opacity: 0.12;
+    }
+
+    .status-message {
+      position: absolute;
+      left: 50%;
+      top: 10px;
+      transform: translateX(-50%);
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(10, 11, 30, 0.88);
+      color: #f5f5f5;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(255, 0, 76, 0.6);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .status-message.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #ff4b6a;
+      box-shadow: 0 0 10px rgba(255, 75, 106, 0.8);
+    }
+
+    /* ---------- BOTTOM PANEL ---------- */
+
+    .bottom-panel {
+      width: 100%;
+      max-width: 980px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin: 14px auto 20px;
+      padding: 0 4px;
+    }
+
+    .card {
+      flex: 1 1 260px;
+      background: radial-gradient(circle at 0% 0%, #13274b, #060b19 65%);
+      border-radius: 18px;
+      padding: 10px 12px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.75);
+      font-size: 13px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      opacity: 0.8;
+      margin-bottom: 6px;
+    }
+
+    .stat-row {
+      margin-bottom: 4px;
+      opacity: 0.86;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .stat-label {
+      opacity: 0.8;
+    }
+
+    .stat-value {
+      font-weight: 600;
+    }
+
+    .shop-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .fish-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid transparent;
+      transition: border 0.15s, background 0.15s;
+    }
+
+    .fish-card:hover {
+      border-color: rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .fish-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 12px;
+    }
+
+    .fish-name {
+      font-weight: 600;
+    }
+
+    .fish-sub {
+      opacity: 0.78;
+      font-size: 11px;
+    }
+
+    .fish-pill {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.4);
+    }
+
+    .fish-buy-btn {
+      border: none;
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      background: radial-gradient(circle at 30% 0%, #ffdf7c, #f5a623 65%);
+      color: #2d1c05;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+      transition: transform 0.08s, box-shadow 0.08s, filter 0.08s;
+      white-space: nowrap;
+    }
+
+    .fish-buy-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+      filter: brightness(1.05);
+    }
+
+    .fish-buy-btn:disabled {
+      opacity: 0.5;
+      transform: none;
+      box-shadow: none;
+      cursor: default;
+    }
+
+    @media (max-width: 640px) {
+      .hud {
+        border-radius: 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .hud-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
     }
   </style>
 </head>
 <body>
-<div class="scene">
-  <!-- Top HUD -->
-  <div class="top-hud">
-    <div class="hud-bar">
-      <div class="hud-label">
-        <div class="hud-pill">Lv</div>
-        <span>0</span>
-      </div>
-      <div class="hud-fill">
-        <div class="hud-value">XP 2</div>
-        <div class="hud-plus">+</div>
-      </div>
-    </div>
+  <!-- Portrait overlay -->
+  <div id="rotateOverlay">
+    <div class="icon">📱↪️</div>
+    <h1>Rotate your device</h1>
+    <p>This aquarium is designed to be played in landscape.  
+      Please turn your phone sideways to continue.</p>
+  </div>
 
-    <div class="hud-bar">
-      <div class="hud-label">
-        <div class="hud-pill">💰</div>
-        <span>Coins</span>
-      </div>
-      <div class="hud-fill">
-        <div class="hud-value">380</div>
-        <div class="hud-plus">+</div>
-      </div>
-    </div>
-
-    <div class="top-right-stack">
-      <div class="hud-bar" style="max-width: 150px;">
-        <div class="hud-label">
-          <div class="hud-pill" style="background:#3fcf5b;">💵</div>
-          <span>20</span>
+  <!-- Everything about the game lives inside #gameRoot -->
+  <div id="gameRoot">
+    <!-- HUD -->
+    <header class="hud">
+      <div class="hud-row">
+        <div class="chip">
+          <span class="chip-icon">Lv</span>
+          <span class="chip-label">Level</span>
+          <span class="chip-value" id="levelDisplay">1</span>
+        </div>
+        <div class="chip">
+          <span class="chip-icon blue">XP</span>
+          <span class="chip-label">XP</span>
+          <span class="chip-value" id="xpDisplay">0</span>
+        </div>
+        <div class="chip">
+          <span class="chip-icon">💰</span>
+          <span class="chip-label">Coins</span>
+          <span class="chip-value" id="coinsDisplay">0</span>
+        </div>
+        <div class="chip">
+          <span class="chip-icon green">🐟</span>
+          <span class="chip-label">Fish</span>
+          <span class="chip-value" id="fishCountDisplay">0 / 10</span>
         </div>
       </div>
-      <div class="fish-count">
-        <div class="fish-icon">🐟</div>
-        <div>2 / 10</div>
+      <div class="hud-row hud-actions">
+        <button id="feedBtn">Feed All (5 coins)</button>
+        <button id="healBtn">Heal Tank (10 coins)</button>
+        <button id="resetBtn">Reset Tank</button>
+      </div>
+    </header>
+
+    <!-- Tank -->
+    <div class="tank-wrapper">
+      <canvas id="tank"></canvas>
+      <div class="tank-rays"></div>
+      <div class="tank-bubbles"></div>
+      <div class="status-message" id="statusMessage">
+        <span class="status-dot"></span>
+        <span id="statusText">Your fish are sick</span>
       </div>
     </div>
+
+    <!-- Bottom panel -->
+    <section class="bottom-panel">
+      <div class="card">
+        <div class="card-title">Tank Stats</div>
+        <div class="stat-row">
+          <span class="stat-label">Average health</span>
+          <span class="stat-value" id="avgHealthStat">–</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Average hunger</span>
+          <span class="stat-value" id="avgHungerStat">–</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Income rate</span>
+          <span class="stat-value" id="incomeStat">0 / min</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Tip</span>
+          <span class="stat-value">Keep fish fed & healthy for max coins 🪙</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Fish Shop</div>
+        <div class="shop-grid" id="shopGrid"></div>
+      </div>
+    </section>
   </div>
 
-  <!-- Center notification -->
-  <div class="center-note">
-    <span>Your fish are sick</span>
-    <button>i</button>
-    <button>✕</button>
-  </div>
+  <script>
+    // ---------- ORIENTATION HANDLING ----------
+    const rotateOverlay = document.getElementById("rotateOverlay");
+    const gameRoot = document.getElementById("gameRoot");
 
-  <!-- Side buttons -->
-  <div class="side-left">
-    <div class="round-btn">📷</div>
-  </div>
-  <div class="side-right">
-    <div class="round-btn">🎬</div>
-  </div>
+    function isLandscape() {
+      return window.innerWidth > window.innerHeight;
+    }
 
-  <!-- Bottom UI -->
-  <div class="bottom-bar">
-    <div class="bottom-left">
-      <div class="cube-btn">🐠</div>
-      <div class="info-btn">i</div>
-    </div>
+    function updateOrientationVisibility() {
+      if (isLandscape()) {
+        rotateOverlay.style.display = "none";
+        gameRoot.classList.remove("hidden");
+        resizeCanvas(); // make sure canvas fits new size
+      } else {
+        rotateOverlay.style.display = "flex";
+        gameRoot.classList.add("hidden");
+      }
+    }
 
-    <div class="bottom-center">
-      <div class="square-btn">🏠</div>
-      <div class="square-btn">🍽</div>
-      <div class="square-btn">🌙</div>
-      <div class="square-btn">✊</div>
-      <div class="square-btn">⚙️</div>
-    </div>
+    window.addEventListener("resize", updateOrientationVisibility);
+    window.addEventListener("orientationchange", updateOrientationVisibility);
 
-    <div class="bottom-right">
-      <div class="square-btn">🧺</div>
-      <div class="round-btn" style="font-size:26px;">≡</div>
-    </div>
-  </div>
+    // ---------- GAME CODE (unchanged logic, with landscape sizing) ----------
+    const SAVE_KEY = "aquariumLifeSave_v1";
 
-  <!-- Sand and rock -->
-  <div class="sand"></div>
-  <div class="rock"></div>
+    const fishTypes = [
+      {
+        id: "goldie",
+        name: "Goldie",
+        description: "Classic starter fish. Easy-going, earns slowly.",
+        color: "#ffd85c",
+        accent: "#ff9a3c",
+        size: 18,
+        speed: 35,
+        incomePerMin: 3,
+        price: 20,
+      },
+      {
+        id: "neon",
+        name: "Neon Tetra",
+        description: "Small but energetic. Loves to dart around.",
+        color: "#52e3ff",
+        accent: "#0070ff",
+        size: 14,
+        speed: 55,
+        incomePerMin: 4,
+        price: 30,
+      },
+      {
+        id: "angel",
+        name: "Angelfish",
+        description: "Graceful swimmer, solid coin earner.",
+        color: "#ff8dc8",
+        accent: "#ff3f7f",
+        size: 22,
+        speed: 28,
+        incomePerMin: 7,
+        price: 60,
+      },
+      {
+        id: "koi",
+        name: "Koi",
+        description: "Rare and majestic. High income, but pricey.",
+        color: "#ffffff",
+        accent: "#ff5c47",
+        size: 26,
+        speed: 30,
+        incomePerMin: 11,
+        price: 110,
+      },
+    ];
 
-  <!-- Bubble column -->
-  <div class="bubble-column">
-    <div class="bubble big"></div>
-    <div class="bubble small"></div>
-    <div class="bubble"></div>
-    <div class="bubble small"></div>
-    <div class="bubble"></div>
-    <div class="bubble big"></div>
-  </div>
-</div>
+    let coins = 0;
+    let xp = 0;
+    let level = 1;
+    let fishes = [];
+    let lastFrameTime = performance.now();
+
+    const canvas = document.getElementById("tank");
+    const ctx = canvas.getContext("2d");
+
+    const coinsDisplay = document.getElementById("coinsDisplay");
+    const xpDisplay = document.getElementById("xpDisplay");
+    const levelDisplay = document.getElementById("levelDisplay");
+    const fishCountDisplay = document.getElementById("fishCountDisplay");
+    const shopGrid = document.getElementById("shopGrid");
+    const feedBtn = document.getElementById("feedBtn");
+    const healBtn = document.getElementById("healBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const statusMessage = document.getElementById("statusMessage");
+    const statusText = document.getElementById("statusText");
+    const avgHealthStat = document.getElementById("avgHealthStat");
+    const avgHungerStat = document.getElementById("avgHungerStat");
+    const incomeStat = document.getElementById("incomeStat");
+
+    function clamp(v, min, max) {
+      return v < min ? min : v > max ? max : v;
+    }
+
+    function resizeCanvas() {
+      const maxWidth = 960;
+      const aspect = 16 / 9;
+
+      const usableWidth = Math.min(window.innerWidth * 0.94, maxWidth);
+      const usableHeight = window.innerHeight * 0.7; // leave room for HUD & bottom panel
+
+      let width = usableWidth;
+      let height = width / aspect;
+
+      if (height > usableHeight) {
+        height = usableHeight;
+        width = height * aspect;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+    }
+
+    class Fish {
+      constructor(typeId, x, y) {
+        const def = fishTypes.find((f) => f.id === typeId);
+        this.typeId = typeId;
+        this.color = def.color;
+        this.accent = def.accent;
+        this.size = def.size;
+        this.speed = def.speed;
+        this.incomePerMin = def.incomePerMin;
+
+        this.x = x;
+        this.y = y;
+        this.dir = Math.random() < 0.5 ? -1 : 1;
+        this.vy = (Math.random() * 2 - 1) * 20;
+        this.hunger = 0.2 + Math.random() * 0.4;
+        this.health = 0.9;
+        this.timeSinceFlip = 0;
+      }
+
+      isSick() {
+        return this.health < 0.6 || this.hunger > 0.8;
+      }
+
+      isVerySick() {
+        return this.health < 0.3;
+      }
+
+      update(dt, w, h) {
+        const baseSpeed = this.speed * (0.5 + (1 - this.health) * 0.4);
+        this.x += this.dir * baseSpeed * dt;
+        this.y += this.vy * dt;
+
+        const margin = this.size * 1.6;
+        if (this.x < margin) {
+          this.x = margin;
+          this.dir = 1;
+        } else if (this.x > w - margin) {
+          this.x = w - margin;
+          this.dir = -1;
+        }
+
+        if (this.y < margin) {
+          this.y = margin;
+          this.vy = Math.abs(this.vy);
+        } else if (this.y > h - margin * 0.6) {
+          this.y = h - margin * 0.6;
+          this.vy = -Math.abs(this.vy);
+        }
+
+        if (Math.random() < 0.02) {
+          this.vy += (Math.random() * 2 - 1) * 20;
+        }
+        this.vy = clamp(this.vy, -35, 35);
+
+        this.hunger += dt * 0.01;
+        this.hunger = clamp(this.hunger, 0, 1);
+
+        if (this.hunger > 0.75) {
+          this.health -= dt * 0.015;
+        } else if (this.hunger < 0.4) {
+          this.health += dt * 0.01;
+        }
+        this.health = clamp(this.health, 0.05, 1);
+
+        this.timeSinceFlip += dt;
+        if (this.timeSinceFlip > 4 && Math.random() < 0.01) {
+          this.dir *= -1;
+          this.timeSinceFlip = 0;
+        }
+      }
+
+      feed() {
+        this.hunger -= 0.5;
+        this.hunger = clamp(this.hunger, 0, 1);
+      }
+
+      heal() {
+        this.health += 0.4;
+        this.health = clamp(this.health, 0.05, 1);
+      }
+
+      earnCoins(dt) {
+        const hungerFactor = this.hunger < 0.5 ? 1 : this.hunger < 0.8 ? 0.6 : 0.25;
+        const healthFactor =
+          this.health > 0.7 ? 1 : this.health > 0.5 ? 0.7 : 0.3;
+        const perSecond = (this.incomePerMin / 60) * hungerFactor * healthFactor;
+        return perSecond * dt;
+      }
+
+      draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        if (this.dir < 0) ctx.scale(-1, 1);
+
+        const bodyLen = this.size * 2.2;
+        const bodyHeight = this.size * 1.2;
+
+        ctx.beginPath();
+        ctx.moveTo(-bodyLen * 0.5, 0);
+        ctx.lineTo(-bodyLen * 0.85, -bodyHeight * 0.4);
+        ctx.lineTo(-bodyLen * 0.85, bodyHeight * 0.4);
+        ctx.closePath();
+        const tailGrad = ctx.createLinearGradient(
+          -bodyLen * 0.85,
+          0,
+          -bodyLen * 0.2,
+          0
+        );
+        tailGrad.addColorStop(0, this.accent);
+        tailGrad.addColorStop(1, this.color);
+        ctx.fillStyle = tailGrad;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.ellipse(
+          0,
+          0,
+          bodyLen * 0.5,
+          bodyHeight * 0.55,
+          0,
+          0,
+          Math.PI * 2
+        );
+        const bodyGrad = ctx.createLinearGradient(
+          -bodyLen * 0.5,
+          0,
+          bodyLen * 0.6,
+          0
+        );
+        bodyGrad.addColorStop(0, "#ffffff");
+        bodyGrad.addColorStop(0.4, this.color);
+        bodyGrad.addColorStop(1, "#001321");
+        ctx.fillStyle = bodyGrad;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(-bodyLen * 0.15, -bodyHeight * 0.4);
+        ctx.quadraticCurveTo(
+          bodyLen * 0.05,
+          -bodyHeight * 0.9,
+          bodyLen * 0.2,
+          -bodyHeight * 0.1
+        );
+        ctx.lineTo(bodyLen * 0.05, -bodyHeight * 0.15);
+        ctx.closePath();
+        ctx.fillStyle = this.accent;
+        ctx.globalAlpha = 0.9;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        const eyeX = bodyLen * 0.35;
+        const eyeY = -bodyHeight * 0.1;
+        ctx.beginPath();
+        ctx.arc(eyeX, eyeY, this.size * 0.22, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(eyeX + this.size * 0.04, eyeY, this.size * 0.12, 0, Math.PI * 2);
+        ctx.fillStyle = "#111821";
+        ctx.fill();
+
+        if (this.isSick()) {
+          ctx.beginPath();
+          ctx.arc(0, -bodyHeight * 0.8, this.size * 0.25, 0, Math.PI * 2);
+          ctx.fillStyle = this.isVerySick() ? "#ff4b6a" : "#ffdf7c";
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+    }
+
+    function saveGame() {
+      const data = {
+        coins,
+        xp,
+        level,
+        fishes: fishes.map((f) => ({
+          typeId: f.typeId,
+          x: f.x / canvas.width,
+          y: f.y / canvas.height,
+          hunger: f.hunger,
+          health: f.health,
+        })),
+      };
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+      } catch (e) {
+        console.warn("Could not save game:", e);
+      }
+    }
+
+    function loadGame() {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        coins = data.coins ?? 0;
+        xp = data.xp ?? 0;
+        level = data.level ?? 1;
+        fishes = [];
+        if (Array.isArray(data.fishes)) {
+          data.fishes.forEach((f) => {
+            const fish = new Fish(
+              f.typeId,
+              (f.x ?? Math.random()) * canvas.width,
+              (f.y ?? Math.random()) * canvas.height * 0.8 + canvas.height * 0.1
+            );
+            fish.hunger = clamp(f.hunger ?? 0.4, 0, 1);
+            fish.health = clamp(f.health ?? 0.9, 0.05, 1);
+            fishes.push(fish);
+          });
+        }
+      } catch (e) {
+        console.warn("Could not load save:", e);
+      }
+    }
+
+    function updateHud() {
+      coinsDisplay.textContent = Math.floor(coins);
+      xpDisplay.textContent = Math.floor(xp);
+      levelDisplay.textContent = level;
+      fishCountDisplay.textContent = `${fishes.length} / 10`;
+
+      let avgHealth = 0;
+      let avgHunger = 0;
+      let income = 0;
+      if (fishes.length) {
+        fishes.forEach((f) => {
+          avgHealth += f.health;
+          avgHunger += f.hunger;
+          income += f.incomePerMin;
+        });
+        avgHealth /= fishes.length;
+        avgHunger /= fishes.length;
+      }
+
+      avgHealthStat.textContent = fishes.length
+        ? `${Math.round(avgHealth * 100)}%`
+        : "–";
+      avgHungerStat.textContent = fishes.length
+        ? `${Math.round(avgHunger * 100)}%`
+        : "–";
+      incomeStat.textContent = `${Math.round(income)} / min`;
+
+      const anySick = fishes.some((f) => f.isSick());
+      if (anySick) {
+        statusText.textContent = "Your fish are sick – feed or heal them!";
+        statusMessage.classList.add("visible");
+      } else if (!fishes.length) {
+        statusText.textContent = "Your tank is empty – buy a fish to start 🐠";
+        statusMessage.classList.add("visible");
+      } else {
+        statusMessage.classList.remove("visible");
+      }
+
+      feedBtn.disabled = coins < 5 || !fishes.length;
+      healBtn.disabled = coins < 10 || !fishes.length;
+    }
+
+    function renderShop() {
+      shopGrid.innerHTML = "";
+      fishTypes.forEach((ft) => {
+        const card = document.createElement("div");
+        card.className = "fish-card";
+
+        const meta = document.createElement("div");
+        meta.className = "fish-meta";
+
+        const name = document.createElement("div");
+        name.className = "fish-name";
+        name.textContent = ft.name;
+
+        const sub = document.createElement("div");
+        sub.className = "fish-sub";
+        sub.textContent = ft.description;
+
+        const pill = document.createElement("div");
+        pill.className = "fish-pill";
+
+        const colorDot = document.createElement("span");
+        colorDot.className = "color-dot";
+        colorDot.style.background = `linear-gradient(135deg, ${ft.color}, ${ft.accent})`;
+
+        const statsSpan = document.createElement("span");
+        statsSpan.textContent = `${ft.incomePerMin}/min • ${ft.price} coins`;
+
+        pill.appendChild(colorDot);
+        pill.appendChild(statsSpan);
+
+        meta.appendChild(name);
+        meta.appendChild(sub);
+        meta.appendChild(pill);
+
+        const btn = document.createElement("button");
+        btn.className = "fish-buy-btn";
+        btn.textContent = `Buy (${ft.price})`;
+        btn.addEventListener("click", () => {
+          if (coins < ft.price || fishes.length >= 10) return;
+          coins -= ft.price;
+          const x = canvas.width * (0.2 + Math.random() * 0.6);
+          const y = canvas.height * (0.25 + Math.random() * 0.5);
+          fishes.push(new Fish(ft.id, x, y));
+          gainXp(3);
+          updateHud();
+          saveGame();
+        });
+
+        card.appendChild(meta);
+        card.appendChild(btn);
+        shopGrid.appendChild(card);
+      });
+    }
+
+    function gainXp(amount) {
+      xp += amount;
+      const nextLevelAt = level * 40;
+      if (xp >= nextLevelAt) {
+        xp -= nextLevelAt;
+        level += 1;
+      }
+    }
+
+    feedBtn.addEventListener("click", () => {
+      if (coins < 5 || !fishes.length) return;
+      coins -= 5;
+      fishes.forEach((f) => f.feed());
+      gainXp(2);
+      updateHud();
+      saveGame();
+    });
+
+    healBtn.addEventListener("click", () => {
+      if (coins < 10 || !fishes.length) return;
+      coins -= 10;
+      fishes.forEach((f) => f.heal());
+      gainXp(4);
+      updateHud();
+      saveGame();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      if (!confirm("Reset your tank and start again?")) return;
+      fishes = [];
+      coins = 50;
+      xp = 0;
+      level = 1;
+      updateHud();
+      saveGame();
+    });
+
+    function drawBackground() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const sandHeight = h * 0.18;
+      const grad = ctx.createLinearGradient(0, h - sandHeight, 0, h);
+      grad.addColorStop(0, "#f0e3b6");
+      grad.addColorStop(1, "#d1b98b");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, h - sandHeight, w, sandHeight);
+
+      function rock(cx, cy, rw, rh) {
+        const rg = ctx.createRadialGradient(
+          cx - rw * 0.2,
+          cy - rh * 0.3,
+          rw * 0.2,
+          cx,
+          cy,
+          rw
+        );
+        rg.addColorStop(0, "#f5f6f9");
+        rg.addColorStop(1, "#7b8292");
+        ctx.fillStyle = rg;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rw, rh, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      rock(w * 0.18, h - sandHeight * 0.5, 40, 26);
+      rock(w * 0.55, h - sandHeight * 0.4, 26, 18);
+      rock(w * 0.78, h - sandHeight * 0.55, 48, 30);
+
+      function plant(baseX) {
+        ctx.strokeStyle = "#1cbf7c";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(baseX, h - sandHeight * 0.1);
+        ctx.quadraticCurveTo(
+          baseX - 18,
+          h - sandHeight * 1.2,
+          baseX + 6,
+          h - sandHeight * 1.5
+        );
+        ctx.stroke();
+      }
+      plant(w * 0.25);
+      plant(w * 0.72);
+    }
+
+    function loop(now) {
+      const dt = (now - lastFrameTime) / 1000;
+      lastFrameTime = now;
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+      drawBackground();
+
+      let earned = 0;
+      fishes.forEach((f) => {
+        f.update(dt, w, h);
+        earned += f.earnCoins(dt);
+        f.draw(ctx);
+      });
+
+      coins += earned;
+      if (earned > 0) gainXp(earned * 0.5);
+
+      updateHud();
+      saveGame();
+      requestAnimationFrame(loop);
+    }
+
+    function init() {
+      coins = 60;
+      resizeCanvas();
+      loadGame();
+      renderShop();
+      updateHud();
+      lastFrameTime = performance.now();
+      requestAnimationFrame(loop);
+      updateOrientationVisibility();
+    }
+
+    init();
+  </script>
 </body>
 </html>
