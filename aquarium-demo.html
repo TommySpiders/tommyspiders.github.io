@@ -24,13 +24,10 @@
       }
     }
 
-    /* -------------------------------------
-       BASE PAGE STYLE
-    -------------------------------------- */
     * {
       box-sizing: border-box;
-      padding: 0;
       margin: 0;
+      padding: 0;
     }
 
     body {
@@ -39,14 +36,13 @@
       background: #000;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: #e8f6ff;
-      touch-action: none; /* we handle touch manually for camera */
+      touch-action: none; /* we handle touch ourselves */
     }
 
     /* -------------------------------------
-       CAMERA (VIEWPORT) + WORLD (3× WIDTH)
+       CAMERA + WORLD (3× WIDTH)
     -------------------------------------- */
 
-    /* The camera is the "window" you see */
     #camera {
       position: fixed;
       inset: 0;
@@ -54,37 +50,35 @@
       touch-action: none;
     }
 
-    /* The world is a 3× wide tank we pan + zoom */
     #world {
       position: absolute;
       left: 0;
       top: 0;
-      width: 300vw;        /* 3× screen width */
+      width: 300vw;               /* 3× screen width */
       height: 100vh;
-      background-image: url("bg-underwater.PNG"); /* your sharp background */
-      background-size: 300vw 100vh; /* stretch across the whole world */
+      background-image: url("bg-underwater.PNG");
+      background-size: 300vw 100vh;
       background-repeat: no-repeat;
       transform-origin: top left;
     }
 
     /* -------------------------------------
-       FLOWING WATER FX: CAUSTICS, DUST, TINT
+       FLOWING WATER FX: CAUSTICS / DUST / TINT
     -------------------------------------- */
 
-    /* Light caustics (bright blue shimmer) */
     #causticsLayer {
       position: absolute;
       inset: 0;
       pointer-events: none;
       mix-blend-mode: screen;
-      opacity: 0.18;
+      opacity: 0.25; /* stronger shimmer */
       background-image:
-        radial-gradient(circle at 10% 0%, rgba(255,255,255,0.35), transparent 55%),
-        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.28), transparent 55%),
-        radial-gradient(circle at 20% 60%, rgba(255,255,255,0.2), transparent 55%),
-        radial-gradient(circle at 90% 90%, rgba(255,255,255,0.18), transparent 55%);
+        radial-gradient(circle at 10% 0%, rgba(255,255,255,0.4), transparent 55%),
+        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.32), transparent 55%),
+        radial-gradient(circle at 20% 60%, rgba(255,255,255,0.24), transparent 55%),
+        radial-gradient(circle at 90% 90%, rgba(255,255,255,0.22), transparent 55%);
       background-size: 220% 220%;
-      animation: causticsFlow 24s linear infinite;
+      animation: causticsFlow 18s linear infinite;
     }
 
     @keyframes causticsFlow {
@@ -93,19 +87,18 @@
       100% { transform: translate3d(5%, -3%, 0) scale(1.1); }
     }
 
-    /* Tiny dust / plankton particles drifting */
     #dustLayer {
       position: absolute;
       inset: 0;
       pointer-events: none;
-      opacity: 0.16;
+      opacity: 0.22; /* more visible */
       background-image:
-        radial-gradient(circle at 15% 20%, rgba(255,255,255,0.5), transparent 55%),
-        radial-gradient(circle at 60% 10%, rgba(255,255,255,0.35), transparent 55%),
-        radial-gradient(circle at 35% 75%, rgba(255,255,255,0.4), transparent 55%),
-        radial-gradient(circle at 85% 60%, rgba(255,255,255,0.3), transparent 55%);
+        radial-gradient(circle at 15% 20%, rgba(255,255,255,0.55), transparent 55%),
+        radial-gradient(circle at 60% 10%, rgba(255,255,255,0.4), transparent 55%),
+        radial-gradient(circle at 35% 75%, rgba(255,255,255,0.45), transparent 55%),
+        radial-gradient(circle at 85% 60%, rgba(255,255,255,0.38), transparent 55%);
       background-size: 260% 260%;
-      animation: dustDrift 40s linear infinite;
+      animation: dustDrift 32s linear infinite;
       mix-blend-mode: screen;
     }
 
@@ -115,7 +108,6 @@
       100% { transform: translate3d(-3%, 5%, 0) scale(1); }
     }
 
-    /* Optional gentle overall blue tint (very subtle) */
     #waterTint {
       position: absolute;
       inset: 0;
@@ -125,7 +117,7 @@
     }
 
     /* -------------------------------------
-       BUBBLE EMITTERS (LEFT, MIDDLE, RIGHT)
+       BUBBLE EMITTERS (LEFT, CENTER, RIGHT)
     -------------------------------------- */
 
     .bubbleColumn {
@@ -137,15 +129,12 @@
       overflow: hidden;
     }
 
-    /* Positions across the 3× wide world */
     #bubblesLeft {
       left: 8vw;
     }
-
     #bubblesCenter {
-      left: 150vw; /* roughly center of the 3× world */
+      left: 150vw;
     }
-
     #bubblesRight {
       right: 8vw;
     }
@@ -194,49 +183,6 @@
     }
 
     /* -------------------------------------
-       FOREGROUND PLANTS / ROCKS (DEPTH)
-    -------------------------------------- */
-
-    #foregroundLayer {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-    }
-
-    .foreground-clump {
-      position: absolute;
-      bottom: -6px;
-      width: 220px;
-      height: 160px;
-      border-radius: 60% 60% 0 0;
-      background:
-        radial-gradient(circle at 20% 10%, rgba(255,255,255,0.25), transparent 60%),
-        radial-gradient(circle at 80% 15%, rgba(255,255,255,0.15), transparent 60%),
-        linear-gradient(to top, #1c5c39 0%, #3b9b5e 50%, #7cd18f 100%);
-      box-shadow:
-        0 -10px 22px rgba(0,0,0,0.7),
-        0 0 16px rgba(0,0,0,0.9);
-      opacity: 0.85;
-      animation: swayPlant 9s ease-in-out infinite;
-      transform-origin: center bottom;
-    }
-
-    #plantLeft {
-      left: 3vw;
-    }
-
-    #plantRight {
-      right: 3vw;
-      animation-delay: -4s;
-    }
-
-    @keyframes swayPlant {
-      0%   { transform: rotate(-2deg); }
-      50%  { transform: rotate(3deg); }
-      100% { transform: rotate(-2deg); }
-    }
-
-    /* -------------------------------------
        FISH LAYER
     -------------------------------------- */
 
@@ -246,7 +192,7 @@
       width: 300vw;
       height: 100vh;
       overflow: visible;
-      pointer-events: none;   /* fish themselves will be clickable */
+      pointer-events: none;
     }
 
     .fish {
@@ -257,7 +203,7 @@
       background: linear-gradient(90deg, #ff9966, #ff5e7a, #ff2e9e);
       box-shadow: 0 0 10px rgba(0,0,0,0.6);
       transform-origin: center center;
-      pointer-events: auto;   /* allow tapping fish */
+      pointer-events: auto;
     }
 
     .fish::before {
@@ -310,42 +256,37 @@
       transform: scale(0.9);
     }
 
-    /* Left side buttons */
     #feedBtn {
       left: 10px;
       top: 22%;
     }
-
     #cleanBtn {
       left: 10px;
       top: 42%;
     }
-
-    /* Right side buttons */
     #buyBtn {
       right: 10px;
       top: 22%;
     }
-
     #shopBtn {
       right: 10px;
       top: 42%;
     }
 
     /* -------------------------------------
-       COIN BUBBLE (TOP RIGHT)
+       COIN BUBBLE (TOP RIGHT) – SMALLER
     -------------------------------------- */
 
     #coinBubble {
       position: fixed;
-      top: 10px;
-      right: 10px;
-      width: 60px;
-      height: 60px;
+      top: 18px;
+      right: 24px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
       background: radial-gradient(circle at 30% 30%, #fff4a6, #e1a800);
       border: 2px solid rgba(255,255,255,0.6);
-      box-shadow: 0 0 12px rgba(255,210,100,0.7);
+      box-shadow: 0 0 10px rgba(255,210,100,0.7);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -354,11 +295,11 @@
       font-weight: bold;
       user-select: none;
       z-index: 5000;
-      font-size: 13px;
+      font-size: 11px;
     }
 
     #coinBubble span {
-      font-size: 15px;
+      font-size: 14px;
     }
 
     /* -------------------------------------
@@ -402,7 +343,6 @@
       cursor: pointer;
       font-size: 14px;
     }
-
   </style>
 </head>
 <body>
@@ -411,7 +351,7 @@
   <div id="camera">
     <!-- WORLD: 3× WIDE AQUARIUM -->
     <div id="world">
-      <!-- Flowing water and environment FX layers -->
+      <!-- Flowing water and FX layers -->
       <div id="causticsLayer"></div>
       <div id="dustLayer"></div>
       <div id="waterTint"></div>
@@ -433,13 +373,7 @@
         <div class="bubble large"></div>
       </div>
 
-      <!-- Foreground plants for depth -->
-      <div id="foregroundLayer">
-        <div id="plantLeft" class="foreground-clump"></div>
-        <div id="plantRight" class="foreground-clump"></div>
-      </div>
-
-      <!-- Fish layer (fish are injected here by JS) -->
+      <!-- Fish layer -->
       <div id="fishLayer"></div>
     </div>
   </div>
@@ -450,15 +384,13 @@
     <span id="coinCount">80</span>
   </div>
 
-  <!-- LEFT UI BUTTONS: Feed / Clean -->
+  <!-- UI BUTTONS -->
   <div id="feedBtn" class="bubbleBtn" title="Feed all fish">🍤</div>
   <div id="cleanBtn" class="bubbleBtn" title="Clean tank">🧽</div>
-
-  <!-- RIGHT UI BUTTONS: Buy / Shop -->
   <div id="buyBtn" class="bubbleBtn" title="Buy new fish">🐠</div>
   <div id="shopBtn" class="bubbleBtn" title="Open shop">🛒</div>
 
-  <!-- FISH INFO GLASS PANEL -->
+  <!-- FISH INFO PANEL -->
   <div id="fishInfoPanel">
     <h2 id="fishName">Fish</h2>
     <p><strong>Health:</strong> <span id="fishHealth"></span>%</p>
@@ -468,8 +400,7 @@
     <div id="closeFishInfo">Close</div>
   </div>
 
-  <!-- PART 2 (JAVASCRIPT) WILL GO BELOW THIS LINE -->
-     <script>
+  <script>
     // ------------------------------
     // BASIC GAME STATE
     // ------------------------------
@@ -479,12 +410,10 @@
     let fishList = [];
     let nextFishId = 1;
 
-    // world/camera references
     const cameraEl = document.getElementById("camera");
     const worldEl = document.getElementById("world");
     const fishLayerEl = document.getElementById("fishLayer");
 
-    // fish info panel
     const fishInfoPanel = document.getElementById("fishInfoPanel");
     const fishNameEl = document.getElementById("fishName");
     const fishHealthEl = document.getElementById("fishHealth");
@@ -493,7 +422,6 @@
     const fishAgeEl = document.getElementById("fishAge");
     const closeFishInfoEl = document.getElementById("closeFishInfo");
 
-    // buttons
     const feedBtn = document.getElementById("feedBtn");
     const cleanBtn = document.getElementById("cleanBtn");
     const buyBtn = document.getElementById("buyBtn");
@@ -504,28 +432,24 @@
     // ------------------------------
     let camX = 0;
     let camY = 0;
-    let camScale = 1.0;           // medium zoom
+    let camScale = 1.0;
     const MIN_SCALE = 0.8;
     const MAX_SCALE = 2.2;
 
-    // used for touch/mouse dragging
     let isDragging = false;
     let lastPointerX = 0;
     let lastPointerY = 0;
 
-    // pinch zoom
     let pinchActive = false;
     let lastPinchDist = 0;
 
     function getWorldWidth() {
       return window.innerWidth * 3;
     }
-
     function getWorldHeight() {
       return window.innerHeight;
     }
 
-    // clamp camera so you can't see black edges
     function clampCamera() {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
@@ -533,7 +457,7 @@
       const worldWidth = getWorldWidth() * camScale;
       const worldHeight = getWorldHeight() * camScale;
 
-      // horizontal: see any part of the 3× world, but no black beyond edges
+      // horizontal clamp
       const minX = vw - worldWidth;
       const maxX = 0;
       if (worldWidth <= vw) {
@@ -542,8 +466,8 @@
         camX = Math.max(minX, Math.min(maxX, camX));
       }
 
-      // vertical: allow moderate freedom (Option B) but still no black
-      const verticalRange = vh * 0.2; // about 20% up/down
+      // vertical: small freedom (~6% of height)
+      const verticalRange = vh * 0.06;
       const minY = -verticalRange;
       const maxY = verticalRange;
       camY = Math.max(minY, Math.min(maxY, camY));
@@ -567,73 +491,52 @@
       applyCameraTransform();
     });
 
-    // ------------------------------
-    // TOUCH HELPERS
-    // ------------------------------
     function distanceTouches(e) {
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       return Math.hypot(dx, dy);
     }
 
-    // touch start
     cameraEl.addEventListener("touchstart", (e) => {
       if (e.touches.length === 1) {
-        // single-finger drag
         isDragging = true;
         pinchActive = false;
         lastPointerX = e.touches[0].clientX;
         lastPointerY = e.touches[0].clientY;
       } else if (e.touches.length === 2) {
-        // pinch zoom start
         isDragging = false;
         pinchActive = true;
         lastPinchDist = distanceTouches(e);
       }
     }, { passive: false });
 
-    // touch move
     cameraEl.addEventListener("touchmove", (e) => {
       e.preventDefault();
       if (pinchActive && e.touches.length === 2) {
-        // pinch zoom
         const newDist = distanceTouches(e);
         const factor = newDist / lastPinchDist;
         lastPinchDist = newDist;
-
         camScale *= factor;
         camScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, camScale));
         clampCamera();
         applyCameraTransform();
       } else if (isDragging && e.touches.length === 1) {
-        // drag
         const x = e.touches[0].clientX;
         const y = e.touches[0].clientY;
-
         camX += (x - lastPointerX);
         camY += (y - lastPointerY);
-
         lastPointerX = x;
         lastPointerY = y;
-
         clampCamera();
         applyCameraTransform();
       }
     }, { passive: false });
 
-    // touch end
     cameraEl.addEventListener("touchend", () => {
-      if (pinchActive) {
-        pinchActive = false;
-      }
-      if (isDragging) {
-        isDragging = false;
-      }
+      pinchActive = false;
+      isDragging = false;
     });
 
-    // ------------------------------
-    // OPTIONAL: MOUSE DRAG (desktop)
-    // ------------------------------
     cameraEl.addEventListener("mousedown", (e) => {
       isDragging = true;
       lastPointerX = e.clientX;
@@ -655,19 +558,19 @@
     });
 
     // ------------------------------
-    // MONEY / UI HELPERS
+    // MONEY / UI
     // ------------------------------
     function updateCoins() {
       coinCountEl.textContent = Math.floor(coins);
     }
 
-    // ------------------------------
-    // FISH CREATION
-    // ------------------------------
     function randomBetween(min, max) {
       return min + Math.random() * (max - min);
     }
 
+    // ------------------------------
+    // FISH CREATION
+    // ------------------------------
     function createFish() {
       if (coins < 20) return;
       coins -= 20;
@@ -680,23 +583,20 @@
       const x = Math.random() * (worldWidth - 120) + 60;
       const y = Math.random() * (worldHeight * 0.7) + worldHeight * 0.1;
 
-      // personality: calm or lively
       const personality = Math.random() < 0.5 ? "calm" : "lively";
-
-      // base speed slightly different by personality
       const baseSpeed = personality === "calm"
         ? randomBetween(18, 26)
-        : randomBetween(26, 40); // pixels per second
+        : randomBetween(26, 40);
 
       const fish = {
         id,
         x,
         y,
-        angle: Math.random() * Math.PI * 2,        // current facing
-        targetAngle: Math.random() * Math.PI * 2,  // where it wants to go
+        angle: Math.random() * Math.PI * 2,
+        targetAngle: Math.random() * Math.PI * 2,
         baseSpeed,
         personality,
-        turnTimer: randomBetween(1.5, 4),          // when to pick new direction
+        turnTimer: randomBetween(1.5, 4),
         health: 100,
         hunger: 0,
         age: 0,
@@ -704,13 +604,11 @@
         el: null
       };
 
-      // build DOM element
       const el = document.createElement("div");
       el.className = "fish";
       el.style.left = `${fish.x}px`;
       el.style.top = `${fish.y}px`;
 
-      // give each fish a slightly different color hue
       const hue = Math.floor(Math.random() * 360);
       el.style.background = `
         linear-gradient(90deg,
@@ -719,7 +617,6 @@
           hsl(${(hue + 80) % 360}, 80%, 55%))
       `;
 
-      // click / tap to show info
       el.addEventListener("click", () => showFishInfo(fish));
 
       fish.el = el;
@@ -744,7 +641,7 @@
     });
 
     // ------------------------------
-    // BUTTONS: FEED / CLEAN / BUY / SHOP
+    // BUTTONS
     // ------------------------------
     feedBtn.addEventListener("click", () => {
       if (coins < 5 || fishList.length === 0) return;
@@ -773,7 +670,7 @@
     });
 
     // ------------------------------
-    // FISH MOVEMENT AI (CALM + LIVELY)
+    // FISH MOVEMENT AI
     // ------------------------------
     function shortestAngleDelta(a, b) {
       let diff = b - a;
@@ -787,29 +684,24 @@
       const worldHeight = getWorldHeight();
 
       for (const f of fishList) {
-        // personality-based steering strength
-        const steerStrength = (f.personality === "calm" ? 0.7 : 1.4);
+        const steerStrength = (f.personality === "calm" ? 0.45 : 0.9); // smoother turns
         const turnSpeed = steerStrength * dt;
 
-        // occasionally pick a new target direction
         f.turnTimer -= dt;
         if (f.turnTimer <= 0) {
-          // nudge target angle somewhat randomly
-          const randomOffset = (Math.random() - 0.5) * (Math.PI / (f.personality === "calm" ? 3 : 2));
+          const randomOffset = (Math.random() - 0.5) *
+            (Math.PI / (f.personality === "calm" ? 3 : 2));
           f.targetAngle = f.angle + randomOffset;
           f.turnTimer = randomBetween(1.0, 3.5);
         }
 
-        // gently steer current angle toward targetAngle
         const delta = shortestAngleDelta(f.angle, f.targetAngle);
         f.angle += delta * turnSpeed;
 
-        // movement
-        const speed = f.baseSpeed * (0.6 + (f.health / 200)); // slower when unhealthy
+        const speed = f.baseSpeed * (0.6 + (f.health / 200));
         f.x += Math.cos(f.angle) * speed * dt;
         f.y += Math.sin(f.angle) * speed * dt;
 
-        // keep inside world with soft "bounce"
         const marginX = 60;
         const marginTop = 40;
         const marginBottom = 80;
@@ -818,21 +710,21 @@
 
         if (f.x < marginX) {
           f.x = marginX;
-          f.targetAngle = Math.random() * Math.PI - Math.PI / 2; // head right-ish
+          f.targetAngle = Math.random() * Math.PI - Math.PI / 2;
           bounced = true;
         } else if (f.x > worldWidth - marginX) {
           f.x = worldWidth - marginX;
-          f.targetAngle = Math.random() * Math.PI + Math.PI / 2; // head left-ish
+          f.targetAngle = Math.random() * Math.PI + Math.PI / 2;
           bounced = true;
         }
 
         if (f.y < marginTop) {
           f.y = marginTop;
-          f.targetAngle = (Math.random() * Math.PI) + Math.PI / 2; // head down-ish
+          f.targetAngle = (Math.random() * Math.PI) + Math.PI / 2;
           bounced = true;
         } else if (f.y > worldHeight - marginBottom) {
           f.y = worldHeight - marginBottom;
-          f.targetAngle = (Math.random() * Math.PI) - Math.PI / 2; // head up-ish
+          f.targetAngle = (Math.random() * Math.PI) - Math.PI / 2;
           bounced = true;
         }
 
@@ -840,7 +732,6 @@
           f.turnTimer = randomBetween(0.4, 1.2);
         }
 
-        // apply to DOM
         f.el.style.left = `${f.x}px`;
         f.el.style.top = `${f.y}px`;
         const deg = f.angle * 180 / Math.PI;
@@ -849,55 +740,42 @@
     }
 
     // ------------------------------
-    // GAME LOGIC TICK (HUNGER, HEALTH, COINS)
+    // LOGIC TICK: HUNGER / HEALTH / COINS
     // ------------------------------
-    let logicAccumulator = 0; // seconds
+    let logicAccumulator = 0;
 
     function logicTick() {
       let income = 0;
-
       for (const f of fishList) {
-        // hunger slowly rises
         f.hunger = Math.min(100, f.hunger + 1.2);
 
-        // health drops if very hungry, recovers slightly if comfortable
         if (f.hunger > 70) {
           f.health = Math.max(0, f.health - 1.2);
         } else if (f.hunger < 40) {
           f.health = Math.min(100, f.health + 0.4);
         }
 
-        // age slowly in "days"
-        f.age += 1 / 30; // ~1 day every 30 seconds of real time
-
-        // value grows with health & age a little
+        f.age += 1 / 30;
         f.value = 8 + (f.health / 5) + (f.age * 0.3);
-
-        // income based on health
         income += (f.health / 100) * 0.6;
       }
-
       coins += income;
       updateCoins();
     }
 
     // ------------------------------
-    // MAIN LOOP (ANIMATION FRAME)
+    // MAIN LOOP
     // ------------------------------
     let lastTime = null;
 
     function frame(timestamp) {
-      if (lastTime == null) {
-        lastTime = timestamp;
-      }
+      if (lastTime == null) lastTime = timestamp;
       const dtMs = timestamp - lastTime;
       lastTime = timestamp;
-      const dt = dtMs / 1000; // seconds
+      const dt = dtMs / 1000;
 
-      // update fish movement
       updateFishMovement(dt);
 
-      // accumulate logic time
       logicAccumulator += dt;
       while (logicAccumulator >= 1.0) {
         logicAccumulator -= 1.0;
@@ -908,17 +786,14 @@
     }
 
     // ------------------------------
-    // INITIAL SETUP
+    // INIT
     // ------------------------------
     function initGame() {
       updateCoins();
-      camScale = 1.0; // medium zoom
+      camScale = 1.0;
       centerCamera();
-
-      // start with two fish
       createFish();
       createFish();
-
       requestAnimationFrame(frame);
     }
 
