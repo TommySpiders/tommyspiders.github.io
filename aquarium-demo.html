@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 
   <style>
-    /* Force landscape on phones */
     @media screen and (orientation: portrait) {
       body::before {
         content: "Please rotate your device";
@@ -22,22 +21,16 @@
       }
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      margin: 0;
       overflow: hidden;
       background: #000;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: #e8f6ff;
+      font-family: system-ui, sans-serif;
       touch-action: none;
+      color: #fff;
     }
 
-    /* CAMERA + WORLD (3× wide tank) */
     #camera {
       position: fixed;
       inset: 0;
@@ -47,8 +40,7 @@
 
     #world {
       position: absolute;
-      left: 0;
-      top: 0;
+      inset: 0;
       width: 300vw;
       height: 100vh;
       background-image: url("bg-underwater.PNG");
@@ -57,628 +49,290 @@
       transform-origin: top left;
     }
 
-    /* Flowing water FX */
-    #causticsLayer {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      mix-blend-mode: screen;
-      opacity: 0.25;
-      background-image:
-        radial-gradient(circle at 10% 0%, rgba(255,255,255,0.4), transparent 55%),
-        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.32), transparent 55%),
-        radial-gradient(circle at 20% 60%, rgba(255,255,255,0.24), transparent 55%),
-        radial-gradient(circle at 90% 90%, rgba(255,255,255,0.22), transparent 55%);
-      background-size: 220% 220%;
-      animation: causticsFlow 18s linear infinite;
-    }
-
-    @keyframes causticsFlow {
-      0%   { transform: translate3d(0,   0,   0) scale(1.1); }
-      50%  { transform: translate3d(-6%, 4%, 0) scale(1.15); }
-      100% { transform: translate3d(5%, -3%, 0) scale(1.1); }
-    }
-
-    #dustLayer {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0.22;
-      background-image:
-        radial-gradient(circle at 15% 20%, rgba(255,255,255,0.55), transparent 55%),
-        radial-gradient(circle at 60% 10%, rgba(255,255,255,0.4), transparent 55%),
-        radial-gradient(circle at 35% 75%, rgba(255,255,255,0.45), transparent 55%),
-        radial-gradient(circle at 85% 60%, rgba(255,255,255,0.38), transparent 55%);
-      background-size: 260% 260%;
-      animation: dustDrift 32s linear infinite;
-      mix-blend-mode: screen;
-    }
-
-    @keyframes dustDrift {
-      0%   { transform: translate3d(0,   0,   0) scale(1); }
-      50%  { transform: translate3d(4%, -4%, 0) scale(1.05); }
-      100% { transform: translate3d(-3%, 5%, 0) scale(1); }
-    }
-
-    #waterTint {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: radial-gradient(circle at 50% 0%, rgba(150,230,255,0.22), transparent 55%);
-      mix-blend-mode: soft-light;
-    }
-
-    /* Bubble emitters */
-    .bubbleColumn {
-      position: absolute;
-      bottom: 0;
-      width: 60px;
-      height: 100%;
-      pointer-events: none;
-      overflow: hidden;
-    }
-    #bubblesLeft  { left: 8vw; }
-    #bubblesCenter{ left: 150vw; }
-    #bubblesRight { right: 8vw; }
-
-    .bubble {
-      position: absolute;
-      bottom: -40px;
-      left: 12px;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.8);
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(160,220,255,0.4));
-      opacity: 0.8;
-      animation: rise 6s linear infinite;
-    }
-    .bubble.small {
-      width: 8px;
-      height: 8px;
-      left: 4px;
-      animation-duration: 7.5s;
-      opacity: 0.7;
-    }
-    .bubble.large {
-      width: 16px;
-      height: 16px;
-      left: 24px;
-      animation-duration: 5s;
-      opacity: 0.9;
-    }
-
-    @keyframes rise {
-      0% {
-        transform: translateY(0) translateX(0);
-        opacity: 0;
-      }
-      10% {
-        opacity: 0.8;
-      }
-      100% {
-        transform: translateY(-110vh) translateX(10px);
-        opacity: 0;
-      }
-    }
-
-    /* FISH LAYER */
     #fishLayer {
       position: absolute;
       inset: 0;
       width: 300vw;
       height: 100vh;
-      overflow: visible;
       pointer-events: none;
     }
 
-    /* REALISTIC GUPPY SPRITE */
+    /* Realistic guppy sprite */
     .fish {
       position: absolute;
-      width: 140px;                /* adjust if too big/small */
+      width: 140px;
       height: 80px;
       background-image: url("guppy1.PNG");
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
-      transform-origin: 50% 50%;
+      transform-origin: center;
       pointer-events: auto;
-      filter: drop-shadow(0 6px 8px rgba(0,0,0,0.45));
-    }
-    .fish::before,
-    .fish::after {
-      content: none;
+      filter: drop-shadow(0 6px 8px rgba(0,0,0,0.5));
     }
 
-    /* UI: 45px bubble buttons */
-    .bubbleBtn {
+    #feedBtn, #cleanBtn, #buyBtn, #shopBtn {
       position: fixed;
       width: 45px;
       height: 45px;
       border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #ffffff, #b7e4ff, #5bc2ff);
+      background: radial-gradient(circle at 30% 30%, #fff, #aee2ff, #58c1ff);
       border: 2px solid rgba(255,255,255,0.6);
-      box-shadow: 0 0 12px rgba(0,140,255,0.6);
+      box-shadow: 0 0 10px rgba(0,140,255,0.6);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
       cursor: pointer;
-      user-select: none;
-      transition: transform 0.08s ease;
-      z-index: 5000;
-    }
-    .bubbleBtn:active {
-      transform: scale(0.9);
+      z-index: 5;
+      font-size: 20px;
     }
 
-    #feedBtn  { left: 10px;  top: 22%; }
-    #cleanBtn { left: 10px;  top: 42%; }
+    #feedBtn  { left: 10px; top: 22%; }
+    #cleanBtn { left: 10px; top: 42%; }
     #buyBtn   { right: 10px; top: 22%; }
     #shopBtn  { right: 10px; top: 42%; }
 
-    /* Coin bubble */
     #coinBubble {
       position: fixed;
-      top: 18px;
-      right: 24px;
+      top: 15px;
+      right: 20px;
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #fff4a6, #e1a800);
+      background: radial-gradient(circle, #fff4a6, #e1a800);
       border: 2px solid rgba(255,255,255,0.6);
-      box-shadow: 0 0 10px rgba(255,210,100,0.7);
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       color: #603800;
       font-weight: bold;
-      user-select: none;
-      z-index: 5000;
-      font-size: 11px;
-    }
-    #coinBubble span {
-      font-size: 14px;
-    }
-
-    /* Fish info panel */
-    #fishInfoPanel {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      width: 280px;
-      padding: 16px;
-      transform: translate(-50%, -50%);
-      background: rgba(255,255,255,0.16);
-      backdrop-filter: blur(12px);
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.45);
-      color: #ffffff;
-      display: none;
-      z-index: 9000;
-      box-shadow: 0 0 18px rgba(0,0,0,0.7);
-    }
-    #fishInfoPanel h2 {
-      margin-bottom: 8px;
-      font-size: 18px;
-    }
-    #fishInfoPanel p {
-      margin-bottom: 4px;
-      font-size: 14px;
-    }
-    #closeFishInfo {
-      margin-top: 10px;
-      padding: 8px;
-      background: rgba(255,255,255,0.25);
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.4);
-      text-align: center;
-      cursor: pointer;
-      font-size: 14px;
+      z-index: 10;
     }
   </style>
 </head>
 <body>
 
-  <div id="camera">
-    <div id="world">
-      <div id="causticsLayer"></div>
-      <div id="dustLayer"></div>
-      <div id="waterTint"></div>
-
-      <div id="bubblesLeft" class="bubbleColumn">
-        <div class="bubble small"></div>
-        <div class="bubble"></div>
-        <div class="bubble large"></div>
-      </div>
-      <div id="bubblesCenter" class="bubbleColumn">
-        <div class="bubble"></div>
-        <div class="bubble small"></div>
-        <div class="bubble large"></div>
-      </div>
-      <div id="bubblesRight" class="bubbleColumn">
-        <div class="bubble small"></div>
-        <div class="bubble"></div>
-        <div class="bubble large"></div>
-      </div>
-
-      <div id="fishLayer"></div>
-    </div>
+<div id="camera">
+  <div id="world">
+    <div id="fishLayer"></div>
   </div>
+</div>
 
-  <div id="coinBubble">
-    🪙
-    <span id="coinCount">80</span>
-  </div>
+<!-- UI -->
+<div id="feedBtn">🍤</div>
+<div id="cleanBtn">🧽</div>
+<div id="buyBtn">🐠</div>
+<div id="shopBtn">🛒</div>
 
-  <div id="feedBtn"  class="bubbleBtn">🍤</div>
-  <div id="cleanBtn" class="bubbleBtn">🧽</div>
-  <div id="buyBtn"   class="bubbleBtn">🐠</div>
-  <div id="shopBtn"  class="bubbleBtn">🛒</div>
+<div id="coinBubble">🪙<span id="coinCount">80</span></div>
 
-  <div id="fishInfoPanel">
-    <h2 id="fishName">Fish</h2>
-    <p><strong>Health:</strong> <span id="fishHealth"></span>%</p>
-    <p><strong>Hunger:</strong> <span id="fishHunger"></span>%</p>
-    <p><strong>Value:</strong> <span id="fishValue"></span> coins</p>
-    <p><strong>Age:</strong> <span id="fishAge"></span> days</p>
-    <div id="closeFishInfo">Close</div>
-  </div>
+<script>
+/* ------------------------------------------
+   BASIC STATE
+------------------------------------------*/
+let coins = 80;
+const fishList = [];
+let nextFishId = 1;
 
-  <script>
-    // ------------------------------
-    // BASIC STATE
-    // ------------------------------
-    let coins = 80;
-    const coinCountEl = document.getElementById("coinCount");
+/* WORLD */
+const cameraEl = document.getElementById("camera");
+const worldEl = document.getElementById("world");
+const fishLayer = document.getElementById("fishLayer");
 
-    let fishList = [];
-    let nextFishId = 1;
+function getWorldWidth() { return window.innerWidth * 3; }
+function getWorldHeight() { return window.innerHeight; }
 
-    const cameraEl = document.getElementById("camera");
-    const worldEl  = document.getElementById("world");
-    const fishLayerEl = document.getElementById("fishLayer");
+/* Camera (only horizontal movement) */
+let camX = 0, camScale = 1;
+function applyCamera() {
+  worldEl.style.transform = `translateX(${camX}px) scale(${camScale})`;
+}
+function centerCamera() {
+  camX = window.innerWidth / 2 - getWorldWidth() / 2;
+  applyCamera();
+}
+centerCamera();
 
-    const fishInfoPanel   = document.getElementById("fishInfoPanel");
-    const fishNameEl      = document.getElementById("fishName");
-    const fishHealthEl    = document.getElementById("fishHealth");
-    const fishHungerEl    = document.getElementById("fishHunger");
-    const fishValueEl     = document.getElementById("fishValue");
-    const fishAgeEl       = document.getElementById("fishAge");
-    const closeFishInfoEl = document.getElementById("closeFishInfo");
+/* ------------------------------------------
+   CREATE FISH (REALISTIC)
+------------------------------------------*/
+function createGuppy() {
+  if (coins < 20) return;
+  coins -= 20;
+  document.getElementById("coinCount").textContent = coins;
 
-    const feedBtn  = document.getElementById("feedBtn");
-    const cleanBtn = document.getElementById("cleanBtn");
-    const buyBtn   = document.getElementById("buyBtn");
-    const shopBtn  = document.getElementById("shopBtn");
+  const worldW = getWorldWidth();
+  const worldH = getWorldHeight();
 
-    // ------------------------------
-    // CAMERA: PAN + ZOOM
-    // ------------------------------
-    let camX = 0, camY = 0, camScale = 1.0;
-    const MIN_SCALE = 0.8, MAX_SCALE = 2.2;
-    let isDragging = false;
-    let lastPointerX = 0, lastPointerY = 0;
-    let pinchActive = false, lastPinchDist = 0;
+  const fish = {
+    id: nextFishId++,
+    x: Math.random() * (worldW - 300) + 150,
+    y: Math.random() * (worldH * 0.6) + worldH * 0.2,
 
-    function getWorldWidth()  { return window.innerWidth * 3; }
-    function getWorldHeight() { return window.innerHeight; }
+    vx: 0,
+    vy: 0,
+    speed: Math.random() * 40 + 60,     // moderate natural speed
+    direction: Math.random() < 0.5 ? 1 : -1,
 
-    function clampCamera() {
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const worldWidth  = getWorldWidth()  * camScale;
+    wigglePhase: Math.random() * Math.PI * 2,
+    wiggleSpeed: 6,                      // medium wiggle
+    wiggleAmount: 6,                     // degrees
 
-      const minX = vw - worldWidth;
-      const maxX = 0;
-      if (worldWidth <= vw) {
-        camX = (vw - worldWidth) / 2;
-      } else {
-        camX = Math.max(minX, Math.min(maxX, camX));
-      }
+    targetY: null,
+    driftTimer: 0,
 
-      const verticalRange = vh * 0.06;
-      const minY = -verticalRange;
-      const maxY =  verticalRange;
-      camY = Math.max(minY, Math.min(maxY, camY));
-    }
+    burstTimer: Math.random() * 4 + 3,   // dart burst cooldown
 
-    function applyCameraTransform() {
-      worldEl.style.transform = `translate(${camX}px, ${camY}px) scale(${camScale})`;
-    }
+    awarenessRadius: 300,                // high awareness
+    avoidRadius: 80,                     // collision avoidance
+    cohesionFactor: 0.15,                // loose schooling
+    alignmentFactor: 0.1,
+    separationFactor: 0.4,
 
-    function centerCamera() {
-      const vw = window.innerWidth;
-      const worldWidth = getWorldWidth() * camScale;
-      camX = vw / 2 - worldWidth / 2;
-      camY = 0;
-      clampCamera();
-      applyCameraTransform();
-    }
+    el: null
+  };
 
-    window.addEventListener("resize", () => {
-      clampCamera();
-      applyCameraTransform();
-    });
+  const el = document.createElement("div");
+  el.className = "fish";
+  fish.el = el;
+  fishLayer.appendChild(el);
+  fishList.push(fish);
+}
 
-    function distanceTouches(e) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      return Math.hypot(dx, dy);
-    }
+/* ------------------------------------------
+   FISH MOVEMENT — REALISTIC SCHOOLING
+------------------------------------------*/
+function updateFish(dt) {
+  const worldW = getWorldWidth();
+  const worldH = getWorldHeight();
 
-    cameraEl.addEventListener("touchstart", (e) => {
-      if (e.touches.length === 1) {
-        isDragging = true;
-        pinchActive = false;
-        lastPointerX = e.touches[0].clientX;
-        lastPointerY = e.touches[0].clientY;
-      } else if (e.touches.length === 2) {
-        isDragging = false;
-        pinchActive = true;
-        lastPinchDist = distanceTouches(e);
-      }
-    }, { passive: false });
+  for (let f of fishList) {
 
-    cameraEl.addEventListener("touchmove", (e) => {
-      e.preventDefault();
-      if (pinchActive && e.touches.length === 2) {
-        const newDist = distanceTouches(e);
-        const factor  = newDist / lastPinchDist;
-        lastPinchDist = newDist;
-        camScale *= factor;
-        camScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, camScale));
-        clampCamera();
-        applyCameraTransform();
-      } else if (isDragging && e.touches.length === 1) {
-        const x = e.touches[0].clientX;
-        const y = e.touches[0].clientY;
-        camX += (x - lastPointerX);
-        camY += (y - lastPointerY);
-        lastPointerX = x;
-        lastPointerY = y;
-        clampCamera();
-        applyCameraTransform();
-      }
-    }, { passive: false });
+    /* 1. FIND NEIGHBOR FISH */
+    let neighborCount = 0;
+    let avgX = 0, avgY = 0;
+    let avgVX = 0;
 
-    cameraEl.addEventListener("touchend", () => {
-      pinchActive = false;
-      isDragging = false;
-    });
+    let sepX = 0, sepY = 0;
 
-    cameraEl.addEventListener("mousedown", (e) => {
-      isDragging = true;
-      lastPointerX = e.clientX;
-      lastPointerY = e.clientY;
-    });
-    window.addEventListener("mousemove", (e) => {
-      if (!isDragging) return;
-      camX += (e.clientX - lastPointerX);
-      camY += (e.clientY - lastPointerY);
-      lastPointerX = e.clientX;
-      lastPointerY = e.clientY;
-      clampCamera();
-      applyCameraTransform();
-    });
-    window.addEventListener("mouseup", () => { isDragging = false; });
+    for (let other of fishList) {
+      if (other === f) continue;
 
-    // ------------------------------
-    // MONEY / UI
-    // ------------------------------
-    function updateCoins() {
-      coinCountEl.textContent = Math.floor(coins);
-    }
+      const dx = other.x - f.x;
+      const dy = other.y - f.y;
+      const dist = Math.hypot(dx, dy);
 
-    function randomBetween(min, max) {
-      return min + Math.random() * (max - min);
-    }
+      if (dist < f.awarenessRadius) {
+        neighborCount++;
+        avgX += other.x;
+        avgY += other.y;
+        avgVX += other.direction;
 
-    // ------------------------------
-    // FISH CREATION (REALISTIC GUPPY)
-    // ------------------------------
-    function createFish() {
-      if (coins < 20) return;
-      coins -= 20;
-      updateCoins();
-
-      const worldWidth  = getWorldWidth();
-      const worldHeight = getWorldHeight();
-
-      const id = nextFishId++;
-      const x = Math.random() * (worldWidth - 200) + 100;
-      const y = Math.random() * (worldHeight * 0.6) + worldHeight * 0.2;
-
-      const personality = Math.random() < 0.5 ? "calm" : "lively";
-      const baseSpeed = personality === "calm"
-        ? randomBetween(15, 22)
-        : randomBetween(22, 32);
-
-      const sizeScale = randomBetween(0.8, 1.15);
-      const direction = Math.random() < 0.5 ? 1 : -1; // 1 = right, -1 = left
-
-      const fish = {
-        id,
-        x,
-        y,
-        direction,
-        baseSpeed,
-        personality,
-        targetY: y,
-        verticalTimer: randomBetween(0.5, 2.5),
-        health: 100,
-        hunger: 0,
-        age: 0,
-        value: 10,
-        sizeScale,
-        el: null
-      };
-
-      const el = document.createElement("div");
-      el.className = "fish";
-      el.style.left = `${fish.x}px`;
-      el.style.top  = `${fish.y}px`;
-      el.addEventListener("click", () => showFishInfo(fish));
-
-      fish.el = el;
-      fishLayerEl.appendChild(el);
-      fishList.push(fish);
-    }
-
-    // ------------------------------
-    // FISH INFO PANEL
-    // ------------------------------
-    function showFishInfo(fish) {
-      fishNameEl.textContent   = `Guppy #${fish.id} (${fish.personality})`;
-      fishHealthEl.textContent = Math.round(fish.health);
-      fishHungerEl.textContent = Math.round(fish.hunger);
-      fishValueEl.textContent  = Math.round(fish.value);
-      fishAgeEl.textContent    = fish.age.toFixed(1);
-      fishInfoPanel.style.display = "block";
-    }
-    closeFishInfoEl.addEventListener("click", () => {
-      fishInfoPanel.style.display = "none";
-    });
-
-    // ------------------------------
-    // BUTTONS
-    // ------------------------------
-    feedBtn.addEventListener("click", () => {
-      if (coins < 5 || fishList.length === 0) return;
-      coins -= 5;
-      fishList.forEach(f => {
-        f.hunger = Math.max(0, f.hunger - 35);
-      });
-      updateCoins();
-    });
-
-    cleanBtn.addEventListener("click", () => {
-      if (coins < 10 || fishList.length === 0) return;
-      coins -= 10;
-      fishList.forEach(f => {
-        f.health = Math.min(100, f.health + 20);
-      });
-      updateCoins();
-    });
-
-    buyBtn.addEventListener("click", () => { createFish(); });
-    shopBtn.addEventListener("click", () => { alert("Shop coming soon!"); });
-
-    // ------------------------------
-    // FISH MOVEMENT (LEFT/RIGHT + DRIFT)
-    // ------------------------------
-    function updateFishMovement(dt) {
-      const worldWidth  = getWorldWidth();
-      const worldHeight = getWorldHeight();
-
-      for (const f of fishList) {
-        // Horizontal swim (only left/right)
-        const speed = f.baseSpeed * (0.6 + (f.health / 200));
-        f.x += f.direction * speed * dt;
-
-        const marginX = 120;
-        if (f.x < marginX) {
-          f.x = marginX;
-          f.direction = 1;  // turn right
-        } else if (f.x > worldWidth - marginX) {
-          f.x = worldWidth - marginX;
-          f.direction = -1; // turn left
+        if (dist < f.avoidRadius) {
+          sepX -= dx / dist;
+          sepY -= dy / dist;
         }
-
-        // Vertical "comfort band"
-        const bandTop    = worldHeight * 0.2;
-        const bandBottom = worldHeight * 0.85;
-
-        f.verticalTimer -= dt;
-        if (f.verticalTimer <= 0) {
-          const jitter = (Math.random() - 0.5) *
-            (f.personality === "calm" ? 60 : 120);
-          let newTarget = f.y + jitter;
-          newTarget = Math.max(bandTop, Math.min(bandBottom, newTarget));
-          f.targetY = newTarget;
-          f.verticalTimer = randomBetween(1.0, 3.0);
-        }
-
-        const verticalSpeed = f.personality === "calm" ? 25 : 40;
-        const dy = f.targetY - f.y;
-        const maxStep = verticalSpeed * dt;
-        if (Math.abs(dy) <= maxStep) {
-          f.y = f.targetY;
-        } else {
-          f.y += Math.sign(dy) * maxStep;
-        }
-
-        if (f.y < 40) { f.y = 40; f.targetY = f.y; }
-        if (f.y > worldHeight - 80) { f.y = worldHeight - 80; f.targetY = f.y; }
-
-        // Small tilt based on vertical movement (nose up/down slightly)
-        const tilt = Math.max(-12, Math.min(12, -dy * 0.12));
-        const flip = f.direction === 1 ? 1 : -1;
-
-        f.el.style.left = `${f.x}px`;
-        f.el.style.top  = `${f.y}px`;
-        f.el.style.transform =
-          `scale(${f.sizeScale}) scaleX(${flip}) rotate(${tilt}deg)`;
       }
     }
 
-    // ------------------------------
-    // LOGIC TICK: HUNGER / HEALTH / COINS
-    // ------------------------------
-    let logicAccumulator = 0;
-    function logicTick() {
-      let income = 0;
-      for (const f of fishList) {
-        f.hunger = Math.min(100, f.hunger + 1.2);
+    /* 2. APPLY SCHOOLING FORCES */
+    let steerX = 0;
+    let steerY = 0;
 
-        if (f.hunger > 70) {
-          f.health = Math.max(0, f.health - 1.2);
-        } else if (f.hunger < 40) {
-          f.health = Math.min(100, f.health + 0.4);
-        }
+    if (neighborCount > 0) {
+      avgX /= neighborCount;
+      avgY /= neighborCount;
+      avgVX /= neighborCount;
 
-        f.age += 1 / 30;
-        f.value = 8 + (f.health / 5) + (f.age * 0.3);
-        income += (f.health / 100) * 0.6;
-      }
-      coins += income;
-      updateCoins();
+      // Cohesion
+      steerX += (avgX - f.x) * f.cohesionFactor;
+      steerY += (avgY - f.y) * f.cohesionFactor;
+
+      // Alignment (horizontal only)
+      steerX += avgVX * f.alignmentFactor;
+
+      // Separation
+      steerX += sepX * f.separationFactor;
+      steerY += sepY * f.separationFactor;
     }
 
-    // ------------------------------
-    // MAIN LOOP
-    // ------------------------------
-    let lastTime = null;
-    function frame(ts) {
-      if (lastTime == null) lastTime = ts;
-      const dt = (ts - lastTime) / 1000;
-      lastTime = ts;
-
-      updateFishMovement(dt);
-
-      logicAccumulator += dt;
-      while (logicAccumulator >= 1.0) {
-        logicAccumulator -= 1.0;
-        logicTick();
-      }
-
-      requestAnimationFrame(frame);
+    /* 3. SOFT BUOYANCY DRIFT */
+    f.driftTimer -= dt;
+    if (f.driftTimer <= 0) {
+      f.targetY = f.y + (Math.random() - 0.5) * 80;
+      f.targetY = Math.max(worldH * 0.15, Math.min(worldH * 0.85, f.targetY));
+      f.driftTimer = Math.random() * 2 + 1;
     }
 
-    // ------------------------------
-    // INIT
-    // ------------------------------
-    function initGame() {
-      updateCoins();
-      camScale = 1.0;
-      centerCamera();
-      createFish();
-      createFish();
-      requestAnimationFrame(frame);
+    if (f.targetY != null) {
+      steerY += (f.targetY - f.y) * 0.02;
     }
 
-    initGame();
-  </script>
+    /* 4. DART BURSTS */
+    f.burstTimer -= dt;
+    if (f.burstTimer <= 0) {
+      f.speed += Math.random() * 40 + 40;
+      f.burstTimer = Math.random() * 4 + 3;
+    }
+
+    /* 5. UPDATE VELOCITY */
+    f.vx = f.direction * f.speed * dt + steerX;
+    f.vy = steerY * dt;
+
+    f.x += f.vx;
+    f.y += f.vy;
+
+    /* 6. TURN AROUND EDGES */
+    if (f.x < 150) { f.x = 150; f.direction = 1; }
+    if (f.x > worldW - 150) { f.x = worldW - 150; f.direction = -1; }
+
+    if (f.y < 60) f.y = 60;
+    if (f.y > worldH - 90) f.y = worldH - 90;
+
+    /* 7. TAIL WIGGLE (REALISTIC) */
+    f.wigglePhase += f.wiggleSpeed * dt;
+    const tilt = Math.sin(f.wigglePhase) * f.wiggleAmount;
+
+    /* 8. APPLY RENDER TRANSFORM */
+    const face = f.direction === 1 ? 1 : -1;
+    f.el.style.left = `${f.x}px`;
+    f.el.style.top = `${f.y}px`;
+    f.el.style.transform =
+      `scaleX(${face}) rotate(${tilt}deg)`;
+  }
+}
+
+/* ------------------------------------------
+   MAIN LOOP
+------------------------------------------*/
+let lastTime = null;
+function tick(ts) {
+  if (!lastTime) lastTime = ts;
+  const dt = (ts - lastTime) / 1000;
+  lastTime = ts;
+
+  updateFish(dt);
+  requestAnimationFrame(tick);
+}
+
+/* ------------------------------------------
+   INIT
+------------------------------------------*/
+function startGame() {
+  createGuppy();
+  createGuppy();
+  createGuppy();
+  requestAnimationFrame(tick);
+}
+
+startGame();
+
+/* UI */
+document.getElementById("buyBtn").onclick = createGuppy;
+document.getElementById("feedBtn").onclick = () => {};
+document.getElementById("cleanBtn").onclick = () => {};
+document.getElementById("shopBtn").onclick = () => {};
+</script>
 </body>
 </html>
