@@ -6,59 +6,73 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 <style>
-/* ------------------------------
+
+/* -------------------------------------
    FORCE LANDSCAPE MODE
---------------------------------*/
+-------------------------------------- */
 @media screen and (orientation:portrait) {
   body::before {
     content: "Please rotate your device";
     position: fixed;
     inset: 0;
-    background: #000;
+    background: black;
     color: white;
     font-size: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
+    z-index: 99999;
   }
 }
 
-/* ------------------------------
-   BASE STYLES
---------------------------------*/
+/* -------------------------------------
+   PAGE BASE
+-------------------------------------- */
 body {
   margin: 0;
   overflow: hidden;
+  background: black;
   font-family: system-ui, sans-serif;
-  background: #000;
 }
 
-/* ------------------------------
-   FULLSCREEN TANK
---------------------------------*/
-#tank {
+/* -------------------------------------
+   CAMERA (PAN + ZOOM)
+-------------------------------------- */
+#camera {
   position: fixed;
   inset: 0;
-  background-image: url("bg-underwater.PNG");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   overflow: hidden;
+  touch-action: none;
 }
 
-/* Water texture overlay */
+/* -------------------------------------
+   WORLD (3× wider tank)
+-------------------------------------- */
+#world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 300vw;        /* 3× world width */
+  height: 100vh;
+  background-image: url("bg-underwater.PNG");
+  background-size: 300vw 100vh;   /* stretch across world */
+  background-repeat: no-repeat;
+}
+
+/* -------------------------------------
+   WATER TEXTURE OVERLAY
+-------------------------------------- */
 #waterOverlay {
   position: absolute;
   inset: 0;
-  pointer-events: none;
   opacity: 0.12;
+  pointer-events: none;
   background-image:
-    radial-gradient(circle at 10% 20%, rgba(255,255,255,0.25), transparent 55%),
-    radial-gradient(circle at 80% 35%, rgba(255,255,255,0.2), transparent 55%),
-    radial-gradient(circle at 40% 80%, rgba(255,255,255,0.18), transparent 55%);
-  background-size: 250% 250%;
-  animation: drift 22s linear infinite;
+    radial-gradient(circle at 10% 20%, rgba(255,255,255,0.20), transparent 55%),
+    radial-gradient(circle at 80% 30%, rgba(255,255,255,0.18), transparent 55%),
+    radial-gradient(circle at 50% 80%, rgba(255,255,255,0.14), transparent 55%);
+  background-size: 240% 240%;
+  animation: drift 20s linear infinite;
 }
 
 @keyframes drift {
@@ -67,78 +81,29 @@ body {
   100% { transform: translate3d(4%,-3%,0) scale(1.05); }
 }
 
-/* ------------------------------
-   COIN BUBBLE (TOP RIGHT)
---------------------------------*/
-#coinBubble {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: radial-gradient(circle at 30% 30%, #ffeeaa, #ddaa00);
-  border-radius: 50%;
-  width: 70px;
-  height: 70px;
-  box-shadow: 0 0 12px rgba(255,220,120,0.8);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  color: #603800;
-  border: 2px solid rgba(255,255,255,0.4);
-  user-select: none;
-}
-
-/* ------------------------------
-   SHINY ORB BUTTONS
---------------------------------*/
-.bubbleBtn {
-  position: fixed;
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ffffff, #9ddcff, #3aa9ff);
-  box-shadow: 0 0 18px rgba(0,140,255,0.7);
-  border: 2px solid rgba(255,255,255,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
-  cursor: pointer;
-  user-select: none;
-  transition: transform .1s ease;
-}
-
-.bubbleBtn:active {
-  transform: scale(0.9);
-}
-
-/* Left side buttons */
-#feedBtn { left: 20px; top: 20%; }
-#cleanBtn { left: 20px; top: 40%; }
-
-/* Right side buttons */
-#buyBtn { right: 20px; top: 20%; }
-#shopBtn { right: 20px; top: 40%; }
-
-/* ------------------------------
-   FISH
---------------------------------*/
+/* -------------------------------------
+   FISH LAYER
+-------------------------------------- */
 #fishLayer {
   position: absolute;
   inset: 0;
-  overflow: hidden;
+  width: 300vw;
+  height: 100vh;
+  overflow: visible;
 }
 
+/* -------------------------------------
+   FISH (smooth AI, rotation)
+-------------------------------------- */
 .fish {
   position: absolute;
   width: 80px;
   height: 38px;
-  border-radius: 60px 50px 50px 60px;
   background: linear-gradient(90deg, #ff9966, #ff5e7a, #ff2e9e);
-  box-shadow: 0 0 12px rgba(0,0,0,0.6);
-  animation: swim linear infinite;
-  cursor: pointer;
+  border-radius: 60px 50px 50px 60px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.6);
+  pointer-events: auto;
+  transform-origin: center center;
 }
 
 .fish::before {
@@ -148,10 +113,9 @@ body {
   top: 50%;
   width: 26px;
   height: 24px;
-  border-radius: 0 70% 70% 0;
   background: linear-gradient(90deg, #ff5e7a, #ff2e9e);
+  border-radius: 0 70% 70% 0;
   transform: translateY(-50%);
-  animation: tail .35s ease-in-out infinite;
 }
 
 .fish::after {
@@ -166,59 +130,108 @@ body {
   box-shadow: 0 0 0 3px rgba(255,255,255,0.4);
 }
 
-@keyframes swim {
-  0% { transform: translateX(-120px) scaleX(1); }
-  49% { transform: translateX(calc(100vw + 120px)) scaleX(1); }
-  50% { transform: translateX(calc(100vw + 120px)) scaleX(-1); }
-  99% { transform: translateX(-120px) scaleX(-1); }
-  100% { transform: translateX(-120px) scaleX(1); }
+/* -------------------------------------
+   UI BUTTONS (60px shiny bubbles)
+-------------------------------------- */
+.bubbleBtn {
+  position: fixed;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle at 30% 30%, #ffffff, #b7e4ff, #5bc2ff);
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.5);
+  box-shadow: 0 0 14px rgba(0,140,255,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform .1s ease;
+  z-index: 5000;
 }
 
-@keyframes tail {
-  0%,100% { transform: translateY(-50%) rotate(10deg); }
-  50% { transform: translateY(-50%) rotate(-14deg); }
+.bubbleBtn:active {
+  transform: scale(0.9);
 }
 
-/* ------------------------------
+/* LEFT UI */
+#feedBtn { left: 20px; top: 20%; }
+#cleanBtn { left: 20px; top: 40%; }
+
+/* RIGHT UI */
+#buyBtn { right: 20px; top: 20%; }
+#shopBtn { right: 20px; top: 40%; }
+
+/* -------------------------------------
+   COIN BUBBLE (TOP RIGHT)
+-------------------------------------- */
+#coinBubble {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff4a6, #e1a800);
+  border: 2px solid rgba(255,255,255,0.5);
+  box-shadow: 0 0 14px rgba(255,210,100,0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #603800;
+  font-weight: bold;
+  user-select: none;
+  z-index: 5000;
+}
+
+/* -------------------------------------
    GLASS FISH INFO PANEL
---------------------------------*/
+-------------------------------------- */
 #fishInfoPanel {
   position: fixed;
   left: 50%;
   top: 50%;
-  width: 320px;
-  padding: 20px;
+  width: 300px;
+  padding: 18px;
+  transform: translate(-50%, -50%);
   background: rgba(255,255,255,0.15);
   backdrop-filter: blur(12px);
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,0.4);
-  transform: translate(-50%, -50%);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.45);
   color: white;
   display: none;
-  box-shadow: 0 0 18px rgba(0,0,0,0.7);
+  z-index: 9000;
 }
 
 #closeFishInfo {
   margin-top: 12px;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.3);
+  padding: 8px;
+  background: rgba(255,255,255,0.25);
   border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 10px;
   cursor: pointer;
   text-align: center;
 }
+
 </style>
 </head>
-
 <body>
 
-<div id="tank">
-  <div id="waterOverlay"></div>
-  <div id="fishLayer"></div>
+<!-- CAMERA WRAPPER -->
+<div id="camera">
+  <div id="world">
+    <div id="waterOverlay"></div>
+    <div id="fishLayer"></div>
+  </div>
 </div>
 
-<!-- COIN BUBBLE -->
-<div id="coinBubble">🪙<div id="coinCount">80</div></div>
+<!-- COIN DISPLAY -->
+<div id="coinBubble">
+  🪙
+  <div id="coinCount">80</div>
+</div>
 
 <!-- LEFT BUTTONS -->
 <div id="feedBtn" class="bubbleBtn">🍤</div>
@@ -228,75 +241,139 @@ body {
 <div id="buyBtn" class="bubbleBtn">🐠</div>
 <div id="shopBtn" class="bubbleBtn">🛒</div>
 
-<!-- GLASS FISH INFO PANEL -->
+<!-- FISH INFO PANEL -->
 <div id="fishInfoPanel">
   <h2 id="fishName">Fish</h2>
   <p><strong>Health:</strong> <span id="fishHealth"></span>%</p>
   <p><strong>Hunger:</strong> <span id="fishHunger"></span>%</p>
-  <p><strong>Value:</strong> <span id="fishValue"></span> coins</p>
+  <p><strong>Value:</strong> <span id="fishValue"></span></p>
   <p><strong>Age:</strong> <span id="fishAge"></span> days</p>
 
   <div id="closeFishInfo">Close</div>
 </div>
 
 <script>
-/* ------------------------------
+
+/* -------------------------------------
    GAME STATE
---------------------------------*/
+-------------------------------------- */
 let coins = 80;
 let fishList = [];
 let nextFishId = 1;
 
-/* ------------------------------
-   UPDATE COIN DISPLAY
---------------------------------*/
-function updateCoins() {
-  document.getElementById("coinCount").textContent = coins;
+document.getElementById("coinCount").textContent = coins;
+
+/* -------------------------------------
+   CAMERA MOVEMENT & ZOOM
+-------------------------------------- */
+let camX = 0;
+let camY = 0;
+let camScale = 1;
+
+let lastTouchDist = null;
+let lastX = null;
+let lastY = null;
+
+const camera = document.getElementById("camera");
+const world = document.getElementById("world");
+
+/* Bounded camera */
+function updateCamera() {
+  world.style.transform =
+    `translate(${camX}px, ${camY}px) scale(${camScale})`;
 }
 
-/* ------------------------------
-   CREATE A NEW FISH
---------------------------------*/
+/* Distance between two touches */
+function getDist(e) {
+  return Math.hypot(
+    e.touches[0].clientX - e.touches[1].clientX,
+    e.touches[0].clientY - e.touches[1].clientY
+  );
+}
+
+/* TOUCH BEGIN */
+camera.addEventListener("touchstart", e => {
+  if (e.touches.length === 1) {
+    lastX = e.touches[0].clientX;
+    lastY = e.touches[0].clientY;
+  } else if (e.touches.length === 2) {
+    lastTouchDist = getDist(e);
+  }
+});
+
+/* TOUCH MOVE */
+camera.addEventListener("touchmove", e => {
+  e.preventDefault();
+
+  /* PINCH ZOOM */
+  if (e.touches.length === 2) {
+    let newDist = getDist(e);
+    let scaleChange = newDist / lastTouchDist;
+    camScale *= scaleChange;
+    camScale = Math.max(0.6, Math.min(camScale, 2.8));
+    lastTouchDist = newDist;
+    updateCamera();
+    return;
+  }
+
+  /* DRAG */
+  if (e.touches.length === 1) {
+    let x = e.touches[0].clientX;
+    let y = e.touches[0].clientY;
+
+    camX += (x - lastX);
+    camY += (y - lastY);
+
+    lastX = x;
+    lastY = y;
+
+    updateCamera();
+  }
+});
+
+/* -------------------------------------
+   ADD FISH
+-------------------------------------- */
 function addFish() {
   if (coins < 20) return;
   coins -= 20;
-  updateCoins();
+  document.getElementById("coinCount").textContent = coins;
 
   const id = nextFishId++;
   const fish = {
     id,
+    x: Math.random() * window.innerWidth * 3,
+    y: Math.random() * window.innerHeight,
+    angle: Math.random() * Math.PI * 2,
+    speed: 0.8 + Math.random() * 1.2,
     health: 100,
     hunger: 0,
     age: 0,
-    value: 10,
+    value: 10
   };
-
-  fishList.push(fish);
 
   const el = document.createElement("div");
   el.className = "fish";
   el.dataset.id = id;
-
-  el.style.top = (20 + Math.random()*60) + "%";
-  el.style.animationDuration = (14 + Math.random()*6) + "s";
-  el.style.animationDelay = -(Math.random()*20) + "s";
+  el.style.left = fish.x + "px";
+  el.style.top = fish.y + "px";
 
   el.addEventListener("click", () => showFishInfo(fish));
 
   fish.el = el;
+  fishList.push(fish);
   document.getElementById("fishLayer").appendChild(el);
 }
 
-/* ------------------------------
-   SHOW FISH INFO GLASS PANEL
---------------------------------*/
-function showFishInfo(fish) {
-  document.getElementById("fishName").textContent = "Fish #" + fish.id;
-  document.getElementById("fishHealth").textContent = fish.health;
-  document.getElementById("fishHunger").textContent = fish.hunger;
-  document.getElementById("fishValue").textContent = fish.value;
-  document.getElementById("fishAge").textContent = fish.age;
-
+/* -------------------------------------
+   FISH INFO POPUP
+-------------------------------------- */
+function showFishInfo(f) {
+  document.getElementById("fishName").textContent = "Fish #" + f.id;
+  document.getElementById("fishHealth").textContent = f.health;
+  document.getElementById("fishHunger").textContent = f.hunger;
+  document.getElementById("fishValue").textContent = f.value;
+  document.getElementById("fishAge").textContent = f.age;
   document.getElementById("fishInfoPanel").style.display = "block";
 }
 
@@ -304,71 +381,94 @@ document.getElementById("closeFishInfo").onclick = () => {
   document.getElementById("fishInfoPanel").style.display = "none";
 };
 
-/* ------------------------------
-   FEED ALL FISH
---------------------------------*/
+/* -------------------------------------
+   FEED
+-------------------------------------- */
 document.getElementById("feedBtn").onclick = () => {
   if (coins < 5) return;
   coins -= 5;
-  updateCoins();
-
-  fishList.forEach(f => {
-    f.hunger = Math.max(0, f.hunger - 40);
-  });
+  document.getElementById("coinCount").textContent = coins;
+  fishList.forEach(f => f.hunger = Math.max(0, f.hunger - 35));
 };
 
-/* ------------------------------
-   CLEAN TANK
---------------------------------*/
+/* -------------------------------------
+   CLEAN
+-------------------------------------- */
 document.getElementById("cleanBtn").onclick = () => {
   if (coins < 10) return;
   coins -= 10;
-  updateCoins();
-
-  fishList.forEach(f => {
-    f.health = Math.min(100, f.health + 20);
-  });
+  document.getElementById("coinCount").textContent = coins;
+  fishList.forEach(f => f.health = Math.min(100, f.health + 20));
 };
 
-/* ------------------------------
+/* -------------------------------------
    BUY FISH
---------------------------------*/
+-------------------------------------- */
 document.getElementById("buyBtn").onclick = addFish;
 
-/* ------------------------------
-   SHOP BUTTON (empty for now)
---------------------------------*/
+/* -------------------------------------
+   SHOP BUTTON
+-------------------------------------- */
 document.getElementById("shopBtn").onclick = () => {
   alert("Shop coming soon!");
 };
 
-/* ------------------------------
-   GAME LOOP
---------------------------------*/
-setInterval(() => {
-  let income = 0;
+/* -------------------------------------
+   FISH MOVEMENT AI (smooth curved)
+-------------------------------------- */
+function updateFish() {
+  for (let f of fishList) {
 
+    /* Slight angle drift */
+    f.angle += (Math.random() - 0.5) * 0.12;
+
+    /* Move */
+    f.x += Math.cos(f.angle) * f.speed;
+    f.y += Math.sin(f.angle) * f.speed;
+
+    /* Boundaries */
+    if (f.x < 0) { f.x = 0; f.angle += Math.PI; }
+    if (f.x > window.innerWidth * 3 - 80) { f.x = window.innerWidth * 3 - 80; f.angle += Math.PI; }
+    if (f.y < 0) { f.y = 0; f.angle = -f.angle; }
+    if (f.y > window.innerHeight - 40) { f.y = window.innerHeight - 40; f.angle = -f.angle; }
+
+    /* Apply position */
+    f.el.style.left = f.x + "px";
+    f.el.style.top = f.y + "px";
+
+    /* Smooth rotation */
+    let deg = f.angle * 180 / Math.PI;
+    f.el.style.transform = `rotate(${deg}deg)`;
+  }
+}
+
+/* -------------------------------------
+   GAME LOOP
+-------------------------------------- */
+setInterval(() => {
+
+  /* Hunger / health effects */
   fishList.forEach(f => {
-    f.hunger = Math.min(100, f.hunger + 2);
+    f.hunger = Math.min(100, f.hunger + 1.2);
 
     if (f.hunger > 70) {
-      f.health = Math.max(0, f.health - 2);
+      f.health = Math.max(0, f.health - 0.8);
     }
 
-    income += (f.health / 100) * 0.5;
+    coins += f.health / 400;  /* passive income */
   });
 
-  coins += income;
-  updateCoins();
+  document.getElementById("coinCount").textContent = Math.floor(coins);
 
-}, 1000);
+  updateFish();
+}, 40);
 
-/* ------------------------------
-   START WITH TWO FISH
---------------------------------*/
+/* -------------------------------------
+   STARTING FISH
+-------------------------------------- */
 addFish();
 addFish();
+
 </script>
-
 </body>
 </html>
