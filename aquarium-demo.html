@@ -21,7 +21,11 @@
       }
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       overflow: hidden;
@@ -31,6 +35,7 @@
       color: #fff;
     }
 
+    /* CAMERA + WORLD */
     #camera {
       position: fixed;
       inset: 0;
@@ -49,6 +54,7 @@
       transform-origin: top left;
     }
 
+    /* FISH LAYER */
     #fishLayer {
       position: absolute;
       inset: 0;
@@ -57,7 +63,7 @@
       pointer-events: none;
     }
 
-    /* Realistic guppy sprite */
+    /* REALISTIC GUPPY SPRITE */
     .fish {
       position: absolute;
       width: 140px;
@@ -71,7 +77,8 @@
       filter: drop-shadow(0 6px 8px rgba(0,0,0,0.5));
     }
 
-    #feedBtn, #cleanBtn, #buyBtn, #shopBtn {
+    /* UI BUTTONS */
+    .bubbleBtn {
       position: fixed;
       width: 45px;
       height: 45px;
@@ -85,6 +92,7 @@
       cursor: pointer;
       z-index: 5;
       font-size: 20px;
+      user-select: none;
     }
 
     #feedBtn  { left: 10px; top: 22%; }
@@ -92,6 +100,7 @@
     #buyBtn   { right: 10px; top: 22%; }
     #shopBtn  { right: 10px; top: 42%; }
 
+    /* COIN BUBBLE */
     #coinBubble {
       position: fixed;
       top: 15px;
@@ -108,6 +117,11 @@
       color: #603800;
       font-weight: bold;
       z-index: 10;
+      font-size: 11px;
+    }
+
+    #coinBubble span {
+      font-size: 14px;
     }
   </style>
 </head>
@@ -120,219 +134,284 @@
 </div>
 
 <!-- UI -->
-<div id="feedBtn">🍤</div>
-<div id="cleanBtn">🧽</div>
-<div id="buyBtn">🐠</div>
-<div id="shopBtn">🛒</div>
+<div id="feedBtn"  class="bubbleBtn">🍤</div>
+<div id="cleanBtn" class="bubbleBtn">🧽</div>
+<div id="buyBtn"   class="bubbleBtn">🐠</div>
+<div id="shopBtn"  class="bubbleBtn">🛒</div>
 
 <div id="coinBubble">🪙<span id="coinCount">80</span></div>
 
 <script>
-/* ------------------------------------------
-   BASIC STATE
-------------------------------------------*/
-let coins = 80;
-const fishList = [];
-let nextFishId = 1;
-
-/* WORLD */
-const cameraEl = document.getElementById("camera");
-const worldEl = document.getElementById("world");
-const fishLayer = document.getElementById("fishLayer");
-
-function getWorldWidth() { return window.innerWidth * 3; }
-function getWorldHeight() { return window.innerHeight; }
-
-/* Camera (only horizontal movement) */
-let camX = 0, camScale = 1;
-function applyCamera() {
-  worldEl.style.transform = `translateX(${camX}px) scale(${camScale})`;
-}
-function centerCamera() {
-  camX = window.innerWidth / 2 - getWorldWidth() / 2;
-  applyCamera();
-}
-centerCamera();
-
-/* ------------------------------------------
-   CREATE FISH (REALISTIC)
-------------------------------------------*/
-function createGuppy() {
-  if (coins < 20) return;
-  coins -= 20;
+  /* -----------------------------
+     BASIC STATE
+  ------------------------------ */
+  let coins = 80;
   document.getElementById("coinCount").textContent = coins;
 
-  const worldW = getWorldWidth();
-  const worldH = getWorldHeight();
+  const fishList = [];
+  let nextFishId = 1;
 
-  const fish = {
-    id: nextFishId++,
-    x: Math.random() * (worldW - 300) + 150,
-    y: Math.random() * (worldH * 0.6) + worldH * 0.2,
+  const cameraEl = document.getElementById("camera");
+  const worldEl  = document.getElementById("world");
+  const fishLayer = document.getElementById("fishLayer");
 
-    vx: 0,
-    vy: 0,
-    speed: Math.random() * 40 + 60,     // moderate natural speed
-    direction: Math.random() < 0.5 ? 1 : -1,
+  function getWorldWidth()  { return window.innerWidth * 3; }
+  function getWorldHeight() { return window.innerHeight; }
 
-    wigglePhase: Math.random() * Math.PI * 2,
-    wiggleSpeed: 6,                      // medium wiggle
-    wiggleAmount: 6,                     // degrees
+  function randomBetween(min, max) {
+    return min + Math.random() * (max - min);
+  }
 
-    targetY: null,
-    driftTimer: 0,
+  /* -----------------------------
+     CAMERA: HORIZONTAL DRAG
+  ------------------------------ */
+  let camX = 0;
+  const camScale = 1; // no zoom for now
 
-    burstTimer: Math.random() * 4 + 3,   // dart burst cooldown
+  function clampCamera() {
+    const vw = window.innerWidth;
+    const worldW = getWorldWidth() * camScale;
+    const minX = vw - worldW;
+    const maxX = 0;
 
-    awarenessRadius: 300,                // high awareness
-    avoidRadius: 80,                     // collision avoidance
-    cohesionFactor: 0.15,                // loose schooling
-    alignmentFactor: 0.1,
-    separationFactor: 0.4,
+    if (worldW <= vw) {
+      camX = (vw - worldW) / 2;
+    } else {
+      camX = Math.max(minX, Math.min(maxX, camX));
+    }
+  }
 
-    el: null
-  };
+  function applyCamera() {
+    worldEl.style.transform = `translateX(${camX}px) scale(${camScale})`;
+  }
 
-  const el = document.createElement("div");
-  el.className = "fish";
-  fish.el = el;
-  fishLayer.appendChild(el);
-  fishList.push(fish);
-}
+  function centerCamera() {
+    const vw = window.innerWidth;
+    const worldW = getWorldWidth() * camScale;
+    camX = vw / 2 - worldW / 2;
+    clampCamera();
+    applyCamera();
+  }
 
-/* ------------------------------------------
-   FISH MOVEMENT — REALISTIC SCHOOLING
-------------------------------------------*/
-function updateFish(dt) {
-  const worldW = getWorldWidth();
-  const worldH = getWorldHeight();
+  centerCamera();
+  window.addEventListener("resize", () => {
+    clampCamera();
+    applyCamera();
+  });
 
-  for (let f of fishList) {
+  let isDragging = false;
+  let lastX = 0;
 
-    /* 1. FIND NEIGHBOR FISH */
-    let neighborCount = 0;
-    let avgX = 0, avgY = 0;
-    let avgVX = 0;
+  cameraEl.addEventListener("touchstart", (e) => {
+    if (e.touches.length === 1) {
+      isDragging = true;
+      lastX = e.touches[0].clientX;
+    }
+  }, { passive: true });
 
-    let sepX = 0, sepY = 0;
+  cameraEl.addEventListener("touchmove", (e) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    const x = e.touches[0].clientX;
+    const dx = x - lastX;
+    lastX = x;
+    camX += dx;
+    clampCamera();
+    applyCamera();
+  }, { passive: true });
 
-    for (let other of fishList) {
-      if (other === f) continue;
+  cameraEl.addEventListener("touchend", () => {
+    isDragging = false;
+  });
 
-      const dx = other.x - f.x;
-      const dy = other.y - f.y;
-      const dist = Math.hypot(dx, dy);
+  cameraEl.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    lastX = e.clientX;
+  });
 
-      if (dist < f.awarenessRadius) {
-        neighborCount++;
-        avgX += other.x;
-        avgY += other.y;
-        avgVX += other.direction;
+  window.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - lastX;
+    lastX = e.clientX;
+    camX += dx;
+    clampCamera();
+    applyCamera();
+  });
 
-        if (dist < f.avoidRadius) {
-          sepX -= dx / dist;
-          sepY -= dy / dist;
+  window.addEventListener("mouseup", () => {
+    isDragging = false;
+  });
+
+  /* -----------------------------
+     CREATE A GUPPY
+  ------------------------------ */
+  function createGuppy() {
+    if (coins < 20) return;
+    coins -= 20;
+    document.getElementById("coinCount").textContent = coins;
+
+    const worldW = getWorldWidth();
+    const worldH = getWorldHeight();
+
+    const direction = Math.random() < 0.5 ? 1 : -1; // 1 = right, -1 = left
+
+    const fish = {
+      id: nextFishId++,
+      x: Math.random() * (worldW - 300) + 150,
+      y: Math.random() * (worldH * 0.6) + worldH * 0.2,
+
+      direction,                       // left/right only
+      baseSpeed: randomBetween(28, 45),// px/sec (natural, not zoomy)
+      speed: 0,                        // current speed (will ease to baseSpeed)
+
+      wigglePhase: Math.random() * Math.PI * 2,
+      wiggleSpeed: 6,                  // medium wiggle frequency
+      wiggleAmount: 7,                 // degrees tilt
+
+      targetY: null,
+      driftTimer: 0,
+      burstTimer: randomBetween(3, 6), // occasional little burst
+
+      el: null
+    };
+
+    const el = document.createElement("div");
+    el.className = "fish";
+    fish.el = el;
+    fishLayer.appendChild(fish.el);
+    fishList.push(fish);
+  }
+
+  /* -----------------------------
+     UPDATE GUPPIES (REALISTIC)
+  ------------------------------ */
+  function updateGuppies(dt) {
+    const worldW = getWorldWidth();
+    const worldH = getWorldHeight();
+
+    const awarenessRadius = 260;       // how far they see other guppies
+    const verticalBandTop = worldH * 0.18;
+    const verticalBandBottom = worldH * 0.82;
+    const marginX = 150;
+
+    for (const f of fishList) {
+      // 1. Find neighbours for loose schooling
+      let neighbors = 0;
+      let avgX = 0;
+      let avgY = 0;
+
+      for (const other of fishList) {
+        if (other === f) continue;
+        const dx = other.x - f.x;
+        const dy = other.y - f.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < awarenessRadius) {
+          neighbors++;
+          avgX += other.x;
+          avgY += other.y;
         }
       }
+
+      if (neighbors > 0) {
+        avgX /= neighbors;
+        avgY /= neighbors;
+
+        // Gentle schooling: steer direction towards group horizontally
+        const dxToSchool = avgX - f.x;
+        if (Math.abs(dxToSchool) > 80) {
+          f.direction = dxToSchool > 0 ? 1 : -1;
+        }
+
+        // Vertical band: targetY drifts toward group Y
+        if (f.targetY == null) f.targetY = f.y;
+        f.targetY += (avgY - f.targetY) * 0.02;
+      }
+
+      // 2. Random gentle vertical drift
+      f.driftTimer -= dt;
+      if (f.driftTimer <= 0) {
+        if (f.targetY == null) f.targetY = f.y;
+        f.targetY += (Math.random() - 0.5) * 60;
+        f.targetY = Math.max(verticalBandTop, Math.min(verticalBandBottom, f.targetY));
+        f.driftTimer = randomBetween(1.5, 3.0);
+      }
+
+      // 3. Speed easing + occasional small burst
+      const targetSpeed = f.baseSpeed;
+      const accel = 25;
+      if (f.speed < targetSpeed) {
+        f.speed = Math.min(targetSpeed, f.speed + accel * dt);
+      } else {
+        f.speed = Math.max(targetSpeed, f.speed - accel * dt);
+      }
+
+      f.burstTimer -= dt;
+      if (f.burstTimer <= 0) {
+        f.speed = targetSpeed * randomBetween(1.1, 1.35);
+        f.burstTimer = randomBetween(3, 7);
+      }
+
+      // 4. Horizontal movement
+      f.x += f.direction * f.speed * dt;
+
+      // 5. Tank edges – turn around
+      if (f.x < marginX) {
+        f.x = marginX;
+        f.direction = 1;
+      } else if (f.x > worldW - marginX) {
+        f.x = worldW - marginX;
+        f.direction = -1;
+      }
+
+      // 6. Smooth vertical move toward targetY
+      if (f.targetY == null) f.targetY = f.y;
+      const verticalSmooth = 2.5;
+      f.y += (f.targetY - f.y) * verticalSmooth * dt;
+
+      if (f.y < verticalBandTop) f.y = verticalBandTop;
+      if (f.y > verticalBandBottom) f.y = verticalBandBottom;
+
+      // 7. Tail wiggle (tilt only, no spinning)
+      f.wigglePhase += f.wiggleSpeed * dt;
+      const tilt = Math.sin(f.wigglePhase) * f.wiggleAmount;
+
+      // 8. Apply transform
+      const face = f.direction === 1 ? 1 : -1;
+      f.el.style.left = `${f.x}px`;
+      f.el.style.top = `${f.y}px`;
+      f.el.style.transform = `scaleX(${face}) rotate(${tilt}deg)`;
     }
-
-    /* 2. APPLY SCHOOLING FORCES */
-    let steerX = 0;
-    let steerY = 0;
-
-    if (neighborCount > 0) {
-      avgX /= neighborCount;
-      avgY /= neighborCount;
-      avgVX /= neighborCount;
-
-      // Cohesion
-      steerX += (avgX - f.x) * f.cohesionFactor;
-      steerY += (avgY - f.y) * f.cohesionFactor;
-
-      // Alignment (horizontal only)
-      steerX += avgVX * f.alignmentFactor;
-
-      // Separation
-      steerX += sepX * f.separationFactor;
-      steerY += sepY * f.separationFactor;
-    }
-
-    /* 3. SOFT BUOYANCY DRIFT */
-    f.driftTimer -= dt;
-    if (f.driftTimer <= 0) {
-      f.targetY = f.y + (Math.random() - 0.5) * 80;
-      f.targetY = Math.max(worldH * 0.15, Math.min(worldH * 0.85, f.targetY));
-      f.driftTimer = Math.random() * 2 + 1;
-    }
-
-    if (f.targetY != null) {
-      steerY += (f.targetY - f.y) * 0.02;
-    }
-
-    /* 4. DART BURSTS */
-    f.burstTimer -= dt;
-    if (f.burstTimer <= 0) {
-      f.speed += Math.random() * 40 + 40;
-      f.burstTimer = Math.random() * 4 + 3;
-    }
-
-    /* 5. UPDATE VELOCITY */
-    f.vx = f.direction * f.speed * dt + steerX;
-    f.vy = steerY * dt;
-
-    f.x += f.vx;
-    f.y += f.vy;
-
-    /* 6. TURN AROUND EDGES */
-    if (f.x < 150) { f.x = 150; f.direction = 1; }
-    if (f.x > worldW - 150) { f.x = worldW - 150; f.direction = -1; }
-
-    if (f.y < 60) f.y = 60;
-    if (f.y > worldH - 90) f.y = worldH - 90;
-
-    /* 7. TAIL WIGGLE (REALISTIC) */
-    f.wigglePhase += f.wiggleSpeed * dt;
-    const tilt = Math.sin(f.wigglePhase) * f.wiggleAmount;
-
-    /* 8. APPLY RENDER TRANSFORM */
-    const face = f.direction === 1 ? 1 : -1;
-    f.el.style.left = `${f.x}px`;
-    f.el.style.top = `${f.y}px`;
-    f.el.style.transform =
-      `scaleX(${face}) rotate(${tilt}deg)`;
   }
-}
 
-/* ------------------------------------------
-   MAIN LOOP
-------------------------------------------*/
-let lastTime = null;
-function tick(ts) {
-  if (!lastTime) lastTime = ts;
-  const dt = (ts - lastTime) / 1000;
-  lastTime = ts;
+  /* -----------------------------
+     MAIN LOOP
+  ------------------------------ */
+  let lastTime = null;
+  function frame(ts) {
+    if (lastTime == null) lastTime = ts;
+    const dt = (ts - lastTime) / 1000;
+    lastTime = ts;
 
-  updateFish(dt);
-  requestAnimationFrame(tick);
-}
+    updateGuppies(dt);
+    requestAnimationFrame(frame);
+  }
 
-/* ------------------------------------------
-   INIT
-------------------------------------------*/
-function startGame() {
-  createGuppy();
-  createGuppy();
-  createGuppy();
-  requestAnimationFrame(tick);
-}
+  /* -----------------------------
+     INIT
+  ------------------------------ */
+  function init() {
+    createGuppy();
+    createGuppy();
+    createGuppy();
+    requestAnimationFrame(frame);
+  }
 
-startGame();
+  init();
 
-/* UI */
-document.getElementById("buyBtn").onclick = createGuppy;
-document.getElementById("feedBtn").onclick = () => {};
-document.getElementById("cleanBtn").onclick = () => {};
-document.getElementById("shopBtn").onclick = () => {};
+  // Buttons
+  document.getElementById("buyBtn").onclick = createGuppy;
+  document.getElementById("feedBtn").onclick  = () => {};
+  document.getElementById("cleanBtn").onclick = () => {};
+  document.getElementById("shopBtn").onclick  = () => {};
 </script>
 </body>
 </html>
