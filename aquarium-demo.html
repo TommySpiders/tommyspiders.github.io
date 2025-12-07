@@ -1,36 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Realistic-ish Aquarium Demo</title>
+  <meta charset="UTF-8" />
+  <title>Mini Aquarium Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    :root {
+      --bg-deep: #02030b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #02040a;
+      background: radial-gradient(circle at top, #050816, var(--bg-deep));
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #e8f6ff;
     }
+
+    .app-shell {
+      width: 100%;
+      max-width: 1040px;
+      padding: 16px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(6, 18, 40, 0.9);
+      border: 1px solid rgba(168, 207, 255, 0.35);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    }
+
+    .pill strong {
+      font-weight: 600;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 820px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ====== Tank visuals ====== */
 
     .tank-wrapper {
       position: relative;
-      width: 800px;
-      height: 450px;
+      width: 100%;
+      aspect-ratio: 16 / 9;
       border-radius: 24px;
       overflow: hidden;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
     }
 
-    /* Glass frame */
     .tank-frame {
       position: absolute;
       inset: 0;
+      padding: 8px;
       border-radius: 24px;
-      padding: 10px;
       background: linear-gradient(135deg, #cfd4ff, #6e7cff, #c0fff8);
-      box-sizing: border-box;
     }
 
     .tank {
@@ -39,42 +88,23 @@
       height: 100%;
       border-radius: 18px;
       overflow: hidden;
+      /* deep, bright water like Fish Tycoon style */
       background:
-        radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.28), transparent 55%),
-        radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.18), transparent 55%),
-        linear-gradient(to bottom, #072a4f 0%, #0b4d7e 40%, #066c7b 70%, #033a2b 100%);
+        radial-gradient(circle at 50% -35%, rgba(255, 255, 255, 0.7), transparent 60%),
+        linear-gradient(to bottom, #4fd3ff 0%, #27aee9 35%, #1080c3 65%, #055074 100%);
       box-shadow:
-        inset 0 0 25px rgba(0, 0, 0, 0.6),
-        inset 0 40px 60px rgba(0, 0, 0, 0.4);
+        inset 0 0 30px rgba(0, 0, 0, 0.7),
+        inset 0 40px 70px rgba(0, 0, 0, 0.55);
     }
 
-    /* Subtle water movement */
-    .water-texture {
-      position: absolute;
-      inset: -20%;
-      background-image:
-        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.08), transparent 55%),
-        radial-gradient(circle at 80% 30%, rgba(255,255,255,0.05), transparent 55%),
-        radial-gradient(circle at 40% 80%, rgba(255,255,255,0.06), transparent 55%);
-      mix-blend-mode: soft-light;
-      opacity: 0.7;
-      animation: drift 18s linear infinite;
-    }
-
-    @keyframes drift {
-      0% { transform: translate3d(0, 0, 0) scale(1.1); }
-      50% { transform: translate3d(-3%, 2%, 0) scale(1.15); }
-      100% { transform: translate3d(3%, -2%, 0) scale(1.1); }
-    }
-
-    /* Light rays */
+    /* light rays */
     .light-rays {
       position: absolute;
-      inset: -20% 0 auto 0;
+      inset: -10% 0 auto 0;
       background:
-        linear-gradient(115deg, rgba(255, 255, 255, 0.2), transparent 70%),
-        linear-gradient(125deg, rgba(255, 255, 255, 0.15), transparent 70%),
-        linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 70%);
+        linear-gradient(115deg, rgba(255, 255, 255, 0.26), transparent 70%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 75%),
+        linear-gradient(155deg, rgba(255, 255, 255, 0.12), transparent 80%);
       mix-blend-mode: screen;
       opacity: 0.25;
       pointer-events: none;
@@ -83,114 +113,138 @@
     }
 
     @keyframes sway {
-      0% { transform: translateY(-15%) rotate(-2deg); opacity: 0.18; }
-      50% { transform: translateY(0%) rotate(3deg); opacity: 0.3; }
-      100% { transform: translateY(-15%) rotate(-2deg); opacity: 0.18; }
-    }
-
-    /* Sand / substrate */
-    .sand {
-      position: absolute;
-      bottom: -10px;
-      left: -5%;
-      width: 110%;
-      height: 26%;
-      background:
-        radial-gradient(circle at 50% 0%, rgba(255,255,255,0.35), transparent 60%),
-        repeating-radial-gradient(circle at 50% 20%, #f6f0d2 0, #f6f0d2 2px, #e1d2a7 3px, #e1d2a7 5px);
-      filter: blur(0.3px);
-      box-shadow:
-        0 -12px 32px rgba(0,0,0,0.6),
-        inset 0 4px 6px rgba(255,255,255,0.35);
-      border-radius: 50%;
-    }
-
-    /* Background plants */
-    .plant {
-      position: absolute;
-      bottom: 0;
-      width: 16px;
-      border-radius: 999px 999px 0 0;
-      background: linear-gradient(to top, #03462f, #12a86a);
-      transform-origin: bottom center;
-      animation: swayPlant 4s ease-in-out infinite;
-    }
-
-    .plant:nth-child(1) {
-      left: 10%;
-      height: 150px;
-      animation-delay: -1s;
-    }
-    .plant:nth-child(2) {
-      left: 18%;
-      height: 110px;
-      animation-delay: -2.3s;
-    }
-    .plant:nth-child(3) {
-      left: 70%;
-      height: 130px;
-      animation-delay: -0.8s;
-    }
-    .plant:nth-child(4) {
-      left: 78%;
-      height: 100px;
-      animation-delay: -1.7s;
-    }
-
-    @keyframes swayPlant {
-      0%, 100% { transform: rotate(-3deg); }
-      50% { transform: rotate(4deg); }
-    }
-
-    /* Bubbles */
-    .bubble {
-      position: absolute;
-      bottom: 0;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #ffffff, rgba(255,255,255,0.1));
-      box-shadow: 0 0 8px rgba(255,255,255,0.7);
-      opacity: 0.7;
-      animation: rise 8s linear infinite;
-    }
-
-    @keyframes rise {
       0% {
-        transform: translateY(0) scale(0.8);
-        opacity: 0;
+        transform: translateY(-10%) rotate(-2deg);
+        opacity: 0.18;
       }
-      10% {
-        opacity: 0.7;
+      50% {
+        transform: translateY(0%) rotate(3deg);
+        opacity: 0.3;
       }
       100% {
-        transform: translateY(-420px) scale(1.05);
-        opacity: 0;
+        transform: translateY(-10%) rotate(-2deg);
+        opacity: 0.18;
       }
     }
 
-    /* Fish */
+    /* suspended particles */
+    .water-texture {
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.35), transparent 55%),
+        radial-gradient(circle at 80% 35%, rgba(255, 255, 255, 0.3), transparent 55%),
+        radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.25), transparent 55%);
+      background-size: 260% 260%;
+      opacity: 0.18;
+      mix-blend-mode: screen;
+      animation: drift 22s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes drift {
+      0% {
+        transform: translate3d(0, 0, 0) scale(1.1);
+      }
+      50% {
+        transform: translate3d(-5%, 3%, 0) scale(1.12);
+      }
+      100% {
+        transform: translate3d(4%, -3%, 0) scale(1.1);
+      }
+    }
+
+    /* sand mound */
+    .sand {
+      position: absolute;
+      bottom: -14px;
+      left: -6%;
+      width: 112%;
+      height: 32%;
+      border-radius: 50%;
+      background: linear-gradient(
+        to top,
+        #c49a64 0%,
+        #d4b374 40%,
+        #e4c787 75%,
+        #f3dc9a 100%
+      );
+      box-shadow:
+        0 -16px 34px rgba(0, 0, 0, 0.65),
+        inset 0 5px 9px rgba(255, 255, 255, 0.35);
+      overflow: hidden;
+    }
+
+    .sand::before {
+      /* fine grain speckles */
+      content: "";
+      position: absolute;
+      inset: -10%;
+      background-image:
+        repeating-linear-gradient(
+          45deg,
+          rgba(130, 95, 50, 0.16) 0,
+          rgba(130, 95, 50, 0.16) 1px,
+          transparent 2px,
+          transparent 3px
+        ),
+        repeating-linear-gradient(
+          -35deg,
+          rgba(255, 255, 255, 0.15) 0,
+          rgba(255, 255, 255, 0.15) 1px,
+          transparent 2px,
+          transparent 3px
+        );
+      opacity: 0.55;
+      mix-blend-mode: soft-light;
+      filter: blur(0.6px);
+    }
+
+    .sand::after {
+      /* darker band where sand meets water */
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        ellipse at 50% 0,
+        rgba(0, 0, 0, 0.35) 0,
+        rgba(0, 0, 0, 0.12) 35%,
+        transparent 70%
+      );
+      opacity: 0.75;
+      pointer-events: none;
+    }
+
+    /* ===== fish ===== */
+
+    #fishLayer {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
     .fish {
       position: absolute;
-      width: 80px;
-      height: 38px;
+      width: 70px;
+      height: 32px;
       border-radius: 60px 50px 50px 60px;
       background:
-        radial-gradient(circle at 20% 50%, rgba(255,255,255,0.7), transparent 55%),
+        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.7), transparent 55%),
         linear-gradient(90deg, #ffb347, #ff6b6b, #ff3f7f);
-      box-shadow: 0 0 18px rgba(0,0,0,0.4);
+      box-shadow: 0 0 14px rgba(0, 0, 0, 0.4);
       transform-origin: center center;
-      animation: swim 14s linear infinite;
+      animation-name: swim;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
     }
 
     .fish::before {
-      /* Tail */
       content: "";
       position: absolute;
-      right: -18px;
+      right: -16px;
       top: 50%;
-      width: 28px;
-      height: 26px;
+      width: 24px;
+      height: 22px;
       border-radius: 0 70% 70% 0;
       background: linear-gradient(90deg, #ff6b6b, #ff3f7f);
       transform: translateY(-50%);
@@ -199,139 +253,367 @@
     }
 
     .fish::after {
-      /* Eye */
       content: "";
       position: absolute;
       left: 14px;
-      top: 13px;
-      width: 9px;
-      height: 9px;
+      top: 11px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: #111;
-      box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
     }
 
     @keyframes swim {
       0% {
-        transform: translateX(-120px) translateY(40px) scaleX(1);
+        transform: translateX(-100px) translateY(0) scaleX(1);
       }
       45% {
-        transform: translateX(740px) translateY(-20px) scaleX(1);
+        transform: translateX(720px) translateY(-20px) scaleX(1);
       }
       50% {
-        transform: translateX(760px) translateY(-10px) scaleX(-1);
+        transform: translateX(740px) translateY(-10px) scaleX(-1);
       }
       95% {
-        transform: translateX(-120px) translateY(30px) scaleX(-1);
+        transform: translateX(-100px) translateY(10px) scaleX(-1);
       }
       100% {
-        transform: translateX(-120px) translateY(40px) scaleX(1);
+        transform: translateX(-100px) translateY(0) scaleX(1);
       }
     }
 
-    .fish.fish-2 {
-      width: 60px;
-      height: 30px;
-      background:
-        radial-gradient(circle at 25% 40%, rgba(255,255,255,0.7), transparent 55%),
-        linear-gradient(90deg, #4dd0ff, #3f8cff, #4d5dff);
-      animation-duration: 18s;
-      animation-delay: -5s;
-      opacity: 0.9;
-    }
-
-    .fish.fish-3 {
-      width: 50px;
-      height: 26px;
-      background:
-        radial-gradient(circle at 25% 40%, rgba(255,255,255,0.7), transparent 55%),
-        linear-gradient(90deg, #a0ff7a, #35c96b, #1f8b4a);
-      animation-duration: 20s;
-      animation-delay: -10s;
-      opacity: 0.85;
+    @keyframes tail {
+      0%,
+      100% {
+        transform: translateY(-50%) rotate(10deg);
+      }
+      50% {
+        transform: translateY(-50%) rotate(-10deg);
+      }
     }
 
     .hud {
       position: absolute;
-      top: 14px;
-      left: 18px;
-      right: 18px;
+      top: 10px;
+      left: 12px;
+      right: 12px;
       display: flex;
-      justify-content: space-between;
-      font-size: 14px;
-      color: #e9f6ff;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      justify-content: center;
       pointer-events: none;
     }
 
     .hud-tag {
-      background: rgba(2, 19, 38, 0.5);
-      border-radius: 999px;
       padding: 4px 12px;
-      backdrop-filter: blur(6px);
-      border: 1px solid rgba(214, 241, 255, 0.25);
+      border-radius: 999px;
+      background: rgba(0, 24, 48, 0.8);
+      border: 1px solid rgba(214, 241, 255, 0.35);
+      font-size: 13px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
     }
 
-    .hud strong {
+    /* ===== side panel / controls ===== */
+
+    .side-panel {
+      background: rgba(4, 11, 26, 0.9);
+      border-radius: 18px;
+      padding: 14px 16px;
+      box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(160, 210, 255, 0.3);
+      font-size: 14px;
+    }
+
+    .side-panel h2 {
+      margin-top: 0;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: none;
+      font-size: 14px;
       font-weight: 600;
+      background: linear-gradient(135deg, #32b3ff, #00e0c3);
+      color: #012034;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+      cursor: pointer;
+      transition: transform 0.07s ease, box-shadow 0.07s ease, filter 0.07s ease;
+    }
+
+    button:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+      filter: brightness(0.95);
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 12px;
+      opacity: 0.8;
     }
   </style>
 </head>
 <body>
-  <div class="tank-wrapper">
-    <div class="tank-frame">
-      <div class="tank">
-        <div class="light-rays"></div>
-        <div class="water-texture"></div>
+  <div class="app-shell">
+    <div class="top-bar">
+      <div class="pill">
+        <strong>Lvl <span id="level">1</span></strong>
+        · XP <span id="xp">0</span>/<span id="xpMax">100</span>
+      </div>
+      <div class="pill">
+        <strong>Coins:</strong> <span id="coins">80</span>
+        · <strong>Fish:</strong> <span id="fishCount">0</span>/10
+      </div>
+    </div>
 
-        <!-- Plants -->
-        <div class="plant"></div>
-        <div class="plant"></div>
-        <div class="plant"></div>
-        <div class="plant"></div>
+    <div class="layout">
+      <!-- Tank side -->
+      <div class="tank-wrapper">
+        <div class="tank-frame">
+          <div class="tank">
+            <div class="light-rays"></div>
+            <div class="water-texture"></div>
+            <div class="sand"></div>
+            <div id="fishLayer"></div>
 
-        <!-- Sand -->
-        <div class="sand"></div>
-
-        <!-- Fish -->
-        <div class="fish" style="top: 40%;"></div>
-        <div class="fish fish-2" style="top: 60%;"></div>
-        <div class="fish fish-3" style="top: 30%;"></div>
-
-        <!-- HUD (example – plug in your stats here) -->
-        <div class="hud">
-          <div class="hud-tag">
-            <strong>Lvl 3</strong> · XP 140 / 200
-          </div>
-          <div class="hud-tag">
-            <strong>Coins:</strong> 325 · <strong>Fish:</strong> 3 / 10
+            <div class="hud">
+              <div class="hud-tag" id="statusText">Welcome to your tank!</div>
+            </div>
           </div>
         </div>
+      </div>
+
+      <!-- Controls side -->
+      <div class="side-panel">
+        <h2>Aquarium Controls</h2>
+        <div class="stat-row">
+          <span>Avg health</span>
+          <span><strong><span id="avgHealth">100</span>%</strong></span>
+        </div>
+        <div class="stat-row">
+          <span>Avg hunger</span>
+          <span><strong><span id="avgHunger">0</span>%</strong></span>
+        </div>
+        <div class="stat-row">
+          <span>Income rate</span>
+          <span><strong><span id="incomeRate">0</span> / tick</strong></span>
+        </div>
+
+        <button id="addFishBtn">Buy Fish (20 coins)</button>
+        <button id="feedBtn">Feed All (5 coins)</button>
+        <button id="healBtn">Heal Tank (10 coins)</button>
+
+        <p class="hint">
+          Coins are earned automatically from healthy fish. Hunger rises over time,
+          and very hungry fish start to lose health.
+        </p>
       </div>
     </div>
   </div>
 
   <script>
-    // Create random bubbles
-    const tank = document.querySelector('.tank');
-    for (let i = 0; i < 16; i++) {
-      const b = document.createElement('div');
-      b.className = 'bubble';
-      resetBubble(b, true);
-      tank.appendChild(b);
-      b.addEventListener('animationiteration', () => resetBubble(b, false));
+    const levelEl = document.getElementById("level");
+    const xpEl = document.getElementById("xp");
+    const xpMaxEl = document.getElementById("xpMax");
+    const coinsEl = document.getElementById("coins");
+    const fishCountEl = document.getElementById("fishCount");
+    const avgHealthEl = document.getElementById("avgHealth");
+    const avgHungerEl = document.getElementById("avgHunger");
+    const incomeRateEl = document.getElementById("incomeRate");
+    const statusTextEl = document.getElementById("statusText");
+
+    const addFishBtn = document.getElementById("addFishBtn");
+    const feedBtn = document.getElementById("feedBtn");
+    const healBtn = document.getElementById("healBtn");
+    const fishLayer = document.getElementById("fishLayer");
+
+    const state = {
+      level: 1,
+      xp: 0,
+      xpMax: 100,
+      coins: 80,
+      fishLimit: 10,
+      fish: [], // {id, health, hunger}
+      nextFishId: 1
+    };
+
+    // ---------- helpers ----------
+
+    function clamp(v, min, max) {
+      return v < min ? min : v > max ? max : v;
     }
 
-    function resetBubble(bubble, firstTime) {
-      const delay = Math.random() * 8;
-      bubble.style.left = (5 + Math.random() * 90) + '%';
-      bubble.style.animationDuration = (6 + Math.random() * 5) + 's';
-      bubble.style.animationDelay = firstTime ? (-delay + 's') : (0 + 's');
-      const size = 6 + Math.random() * 10;
-      bubble.style.width = size + 'px';
-      bubble.style.height = size + 'px';
-      bubble.style.opacity = 0.4 + Math.random() * 0.4;
+    function updateUI(avgHealth = 100, avgHunger = 0, income = 0) {
+      levelEl.textContent = state.level;
+      xpEl.textContent = Math.floor(state.xp);
+      xpMaxEl.textContent = state.xpMax;
+      coinsEl.textContent = Math.floor(state.coins);
+      fishCountEl.textContent = state.fish.length;
+      avgHealthEl.textContent = state.fish.length ? Math.round(avgHealth) : 0;
+      avgHungerEl.textContent = state.fish.length ? Math.round(avgHunger) : 0;
+      incomeRateEl.textContent = income.toFixed(1);
+
+      // Buttons disabled when not enough coins
+      addFishBtn.disabled =
+        state.coins < 20 || state.fish.length >= state.fishLimit;
+      feedBtn.disabled = state.coins < 5 || state.fish.length === 0;
+      healBtn.disabled = state.coins < 10 || state.fish.length === 0;
+
+      if (!state.fish.length) {
+        statusTextEl.textContent = "Buy a fish to start your aquarium!";
+      } else if (avgHealth < 50) {
+        statusTextEl.textContent = "Your fish are sick 🐟💊";
+      } else if (avgHunger > 60) {
+        statusTextEl.textContent = "Your fish are very hungry 🍽️";
+      } else {
+        statusTextEl.textContent = "Your fish are doing well 🐠";
+      }
     }
+
+    function levelUpCheck() {
+      while (state.xp >= state.xpMax) {
+        state.xp -= state.xpMax;
+        state.level += 1;
+        state.xpMax = Math.round(state.xpMax * 1.35);
+      }
+    }
+
+    // ---------- fish creation ----------
+
+    function createFishElement(id) {
+      const el = document.createElement("div");
+      el.className = "fish";
+
+      // Random vertical position (avoid the very top & sand)
+      const topPercent = 20 + Math.random() * 40;
+      el.style.top = topPercent + "%";
+
+      // Random speed
+      const duration = 14 + Math.random() * 8;
+      el.style.animationDuration = duration + "s";
+
+      // Random start offset
+      const delay = -Math.random() * duration;
+      el.style.animationDelay = delay + "s";
+
+      // Slight color variation
+      const hue = Math.floor(Math.random() * 360);
+      el.style.background = `
+        radial-gradient(circle at 20% 50%, rgba(255,255,255,0.7), transparent 55%),
+        linear-gradient(90deg, hsl(${hue}, 90%, 65%), hsl(${(hue + 40) % 360}, 90%, 60%), hsl(${(hue + 70) % 360}, 90%, 55%))
+      `;
+
+      el.dataset.id = id;
+      fishLayer.appendChild(el);
+    }
+
+    function addFish() {
+      if (state.coins < 20 || state.fish.length >= state.fishLimit) return;
+      state.coins -= 20;
+
+      const id = state.nextFishId++;
+      state.fish.push({
+        id,
+        health: 100,
+        hunger: 0
+      });
+      createFishElement(id);
+      state.xp += 10;
+      levelUpCheck();
+      updateUI();
+    }
+
+    // ---------- actions ----------
+
+    function feedAll() {
+      if (state.coins < 5 || !state.fish.length) return;
+      state.coins -= 5;
+      state.fish.forEach(f => {
+        f.hunger = clamp(f.hunger - 45, 0, 100);
+      });
+      state.xp += 5;
+      levelUpCheck();
+      updateUI();
+    }
+
+    function healAll() {
+      if (state.coins < 10 || !state.fish.length) return;
+      state.coins -= 10;
+      state.fish.forEach(f => {
+        f.health = clamp(f.health + 40, 0, 100);
+      });
+      state.xp += 8;
+      levelUpCheck();
+      updateUI();
+    }
+
+    addFishBtn.addEventListener("click", addFish);
+    feedBtn.addEventListener("click", feedAll);
+    healBtn.addEventListener("click", healAll);
+
+    // ---------- main game loop ----------
+
+    const TICK_MS = 1000; // 1 second
+
+    function tick() {
+      if (!state.fish.length) {
+        updateUI(100, 0, 0);
+        return;
+      }
+
+      let totalHealth = 0;
+      let totalHunger = 0;
+      let income = 0;
+
+      state.fish.forEach(f => {
+        // Hunger slowly rises
+        f.hunger = clamp(f.hunger + 4, 0, 100);
+
+        // If very hungry, health drops; if not too hungry, health recovers a bit
+        if (f.hunger > 70) {
+          f.health = clamp(f.health - 3, 0, 100);
+        } else if (f.hunger < 40) {
+          f.health = clamp(f.health + 1.5, 0, 100);
+        }
+
+        totalHealth += f.health;
+        totalHunger += f.hunger;
+
+        income += (f.health / 100) * 0.8; // base income per fish per tick
+      });
+
+      const avgHealth = totalHealth / state.fish.length;
+      const avgHunger = totalHunger / state.fish.length;
+
+      state.coins += income;
+      state.xp += income * 0.5;
+      levelUpCheck();
+
+      updateUI(avgHealth, avgHunger, income);
+    }
+
+    // start with 2 fish for fun
+    addFish();
+    addFish();
+
+    updateUI();
+
+    setInterval(tick, TICK_MS);
   </script>
 </body>
 </html>
