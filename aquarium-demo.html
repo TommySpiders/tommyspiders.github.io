@@ -1,501 +1,374 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Aquarium Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    :root {
-      --bg-deep: #02030b;
-    }
+<meta charset="UTF-8" />
+<title>Aquarium Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
-    * {
-      box-sizing: border-box;
-    }
+<style>
+/* ------------------------------
+   FORCE LANDSCAPE MODE
+--------------------------------*/
+@media screen and (orientation:portrait) {
+  body::before {
+    content: "Please rotate your device";
+    position: fixed;
+    inset: 0;
+    background: #000;
+    color: white;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+}
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      background: radial-gradient(circle at top, #050816, var(--bg-deep));
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: #e8f6ff;
-    }
+/* ------------------------------
+   BASE STYLES
+--------------------------------*/
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: system-ui, sans-serif;
+  background: #000;
+}
 
-    .app-shell {
-      width: 100%;
-      max-width: 1040px;
-      padding: 12px 12px 16px;
-    }
+/* ------------------------------
+   FULLSCREEN TANK
+--------------------------------*/
+#tank {
+  position: fixed;
+  inset: 0;
+  background-image: url("bg-underwater.PNG");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 10px;
-      font-size: 14px;
-      flex-wrap: wrap;
-    }
+/* Water texture overlay */
+#waterOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.12;
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(255,255,255,0.25), transparent 55%),
+    radial-gradient(circle at 80% 35%, rgba(255,255,255,0.2), transparent 55%),
+    radial-gradient(circle at 40% 80%, rgba(255,255,255,0.18), transparent 55%);
+  background-size: 250% 250%;
+  animation: drift 22s linear infinite;
+}
 
-    .pill {
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: rgba(6, 18, 40, 0.9);
-      border: 1px solid rgba(168, 207, 255, 0.35);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
-    }
+@keyframes drift {
+  0% { transform: translate3d(0,0,0) scale(1.05); }
+  50% { transform: translate3d(-4%,3%,0) scale(1.08); }
+  100% { transform: translate3d(4%,-3%,0) scale(1.05); }
+}
 
-    .pill strong {
-      font-weight: 600;
-    }
+/* ------------------------------
+   COIN BUBBLE (TOP RIGHT)
+--------------------------------*/
+#coinBubble {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: radial-gradient(circle at 30% 30%, #ffeeaa, #ddaa00);
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  box-shadow: 0 0 12px rgba(255,220,120,0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #603800;
+  border: 2px solid rgba(255,255,255,0.4);
+  user-select: none;
+}
 
-    /* ====== layout: always vertical so tank can be big ====== */
-    .layout {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
+/* ------------------------------
+   SHINY ORB BUTTONS
+--------------------------------*/
+.bubbleBtn {
+  position: fixed;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ffffff, #9ddcff, #3aa9ff);
+  box-shadow: 0 0 18px rgba(0,140,255,0.7);
+  border: 2px solid rgba(255,255,255,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform .1s ease;
+}
 
-    /* ====== Tank visuals ====== */
+.bubbleBtn:active {
+  transform: scale(0.9);
+}
 
-    .tank-wrapper {
-      position: relative;
-      width: 100%;
-      /* 👇 make tank take most of the screen height on phones */
-      height: 65vh;
-      max-height: 540px;
-      border-radius: 24px;
-      overflow: hidden;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
-    }
+/* Left side buttons */
+#feedBtn { left: 20px; top: 20%; }
+#cleanBtn { left: 20px; top: 40%; }
 
-    .tank-frame {
-      position: absolute;
-      inset: 0;
-      padding: 8px;
-      border-radius: 24px;
-      background: linear-gradient(135deg, #cfd4ff, #6e7cff, #c0fff8);
-    }
+/* Right side buttons */
+#buyBtn { right: 20px; top: 20%; }
+#shopBtn { right: 20px; top: 40%; }
 
-    .tank {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      border-radius: 18px;
-      overflow: hidden;
+/* ------------------------------
+   FISH
+--------------------------------*/
+#fishLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
 
-      /* your AI-generated background image (exact name with .PNG) */
-      background-image: url("bg-underwater.PNG");
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
+.fish {
+  position: absolute;
+  width: 80px;
+  height: 38px;
+  border-radius: 60px 50px 50px 60px;
+  background: linear-gradient(90deg, #ff9966, #ff5e7a, #ff2e9e);
+  box-shadow: 0 0 12px rgba(0,0,0,0.6);
+  animation: swim linear infinite;
+  cursor: pointer;
+}
 
-      box-shadow:
-        inset 0 0 30px rgba(0, 0, 0, 0.7),
-        inset 0 40px 70px rgba(0, 0, 0, 0.55);
-    }
+.fish::before {
+  content: "";
+  position: absolute;
+  right: -18px;
+  top: 50%;
+  width: 26px;
+  height: 24px;
+  border-radius: 0 70% 70% 0;
+  background: linear-gradient(90deg, #ff5e7a, #ff2e9e);
+  transform: translateY(-50%);
+  animation: tail .35s ease-in-out infinite;
+}
 
-    /* extra subtle particles overlay */
-    .water-texture {
-      position: absolute;
-      inset: 0;
-      background-image:
-        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.25), transparent 55%),
-        radial-gradient(circle at 80% 35%, rgba(255, 255, 255, 0.2), transparent 55%),
-        radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.18), transparent 55%);
-      background-size: 260% 260%;
-      opacity: 0.12;
-      mix-blend-mode: screen;
-      animation: drift 22s linear infinite;
-      pointer-events: none;
-    }
+.fish::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 13px;
+  width: 9px;
+  height: 9px;
+  background: black;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.4);
+}
 
-    @keyframes drift {
-      0%   { transform: translate3d(0, 0, 0) scale(1.05); }
-      50%  { transform: translate3d(-5%, 3%, 0) scale(1.08); }
-      100% { transform: translate3d(4%, -3%, 0) scale(1.05); }
-    }
+@keyframes swim {
+  0% { transform: translateX(-120px) scaleX(1); }
+  49% { transform: translateX(calc(100vw + 120px)) scaleX(1); }
+  50% { transform: translateX(calc(100vw + 120px)) scaleX(-1); }
+  99% { transform: translateX(-120px) scaleX(-1); }
+  100% { transform: translateX(-120px) scaleX(1); }
+}
 
-    /* ===== fish ===== */
+@keyframes tail {
+  0%,100% { transform: translateY(-50%) rotate(10deg); }
+  50% { transform: translateY(-50%) rotate(-14deg); }
+}
 
-    #fishLayer {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-    }
+/* ------------------------------
+   GLASS FISH INFO PANEL
+--------------------------------*/
+#fishInfoPanel {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 320px;
+  padding: 20px;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.4);
+  transform: translate(-50%, -50%);
+  color: white;
+  display: none;
+  box-shadow: 0 0 18px rgba(0,0,0,0.7);
+}
 
-    .fish {
-      position: absolute;
-      width: 70px;
-      height: 32px;
-      border-radius: 60px 50px 50px 60px;
-      background:
-        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.7), transparent 55%),
-        linear-gradient(90deg, #ffb347, #ff6b6b, #ff3f7f);
-      box-shadow: 0 0 14px rgba(0, 0, 0, 0.4);
-      transform-origin: center center;
-      animation-name: swim;
-      animation-iteration-count: infinite;
-      animation-timing-function: linear;
-    }
-
-    .fish::before {
-      content: "";
-      position: absolute;
-      right: -16px;
-      top: 50%;
-      width: 24px;
-      height: 22px;
-      border-radius: 0 70% 70% 0;
-      background: linear-gradient(90deg, #ff6b6b, #ff3f7f);
-      transform: translateY(-50%);
-      animation: tail 0.4s ease-in-out infinite;
-      transform-origin: left center;
-    }
-
-    .fish::after {
-      content: "";
-      position: absolute;
-      left: 14px;
-      top: 11px;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #111;
-      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
-    }
-
-    @keyframes swim {
-      0% {
-        transform: translateX(-100px) translateY(0) scaleX(1);
-      }
-      45% {
-        transform: translateX(720px) translateY(-20px) scaleX(1);
-      }
-      50% {
-        transform: translateX(740px) translateY(-10px) scaleX(-1);
-      }
-      95% {
-        transform: translateX(-100px) translateY(10px) scaleX(-1);
-      }
-      100% {
-        transform: translateX(-100px) translateY(0) scaleX(1);
-      }
-    }
-
-    @keyframes tail {
-      0%, 100% {
-        transform: translateY(-50%) rotate(10deg);
-      }
-      50% {
-        transform: translateY(-50%) rotate(-10deg);
-      }
-    }
-
-    .hud {
-      position: absolute;
-      top: 10px;
-      left: 12px;
-      right: 12px;
-      display: flex;
-      justify-content: center;
-      pointer-events: none;
-    }
-
-    .hud-tag {
-      padding: 4px 12px;
-      border-radius: 999px;
-      background: rgba(0, 24, 48, 0.8);
-      border: 1px solid rgba(214, 241, 255, 0.35);
-      font-size: 13px;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-    }
-
-    /* ===== side panel / controls ===== */
-
-    .side-panel {
-      background: rgba(4, 11, 26, 0.9);
-      border-radius: 18px;
-      padding: 14px 16px;
-      box-shadow: 0 0 24px rgba(0, 0, 0, 0.8);
-      border: 1px solid rgba(160, 210, 255, 0.3);
-      font-size: 14px;
-    }
-
-    .side-panel h2 {
-      margin-top: 0;
-      font-size: 18px;
-      margin-bottom: 8px;
-    }
-
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 8px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: none;
-      font-size: 14px;
-      font-weight: 600;
-      background: linear-gradient(135deg, #32b3ff, #00e0c3);
-      color: #012034;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
-      cursor: pointer;
-      transition: transform 0.07s ease, box-shadow 0.07s ease, filter 0.07s ease;
-    }
-
-    button:active {
-      transform: translateY(1px) scale(0.98);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
-      filter: brightness(0.95);
-    }
-
-    button:disabled {
-      opacity: 0.4;
-      cursor: default;
-      box-shadow: none;
-    }
-
-    .hint {
-      margin-top: 10px;
-      font-size: 12px;
-      opacity: 0.8;
-    }
-  </style>
+#closeFishInfo {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.3);
+  border: 1px solid rgba(255,255,255,0.4);
+  cursor: pointer;
+  text-align: center;
+}
+</style>
 </head>
+
 <body>
-  <div class="app-shell">
-    <div class="top-bar">
-      <div class="pill">
-        <strong>Lvl <span id="level">1</span></strong>
-        · XP <span id="xp">0</span>/<span id="xpMax">100</span>
-      </div>
-      <div class="pill">
-        <strong>Coins:</strong> <span id="coins">80</span>
-        · <strong>Fish:</strong> <span id="fishCount">0</span>/10
-      </div>
-    </div>
 
-    <div class="layout">
-      <!-- Tank side -->
-      <div class="tank-wrapper">
-        <div class="tank-frame">
-          <div class="tank">
-            <div class="water-texture"></div>
-            <div id="fishLayer"></div>
+<div id="tank">
+  <div id="waterOverlay"></div>
+  <div id="fishLayer"></div>
+</div>
 
-            <div class="hud">
-              <div class="hud-tag" id="statusText">Welcome to your tank!</div>
-            </div>
-          </div>
-        </div>
-      </div>
+<!-- COIN BUBBLE -->
+<div id="coinBubble">🪙<div id="coinCount">80</div></div>
 
-      <!-- Controls side -->
-      <div class="side-panel">
-        <h2>Aquarium Controls</h2>
-        <div class="stat-row">
-          <span>Avg health</span>
-          <span><strong><span id="avgHealth">100</span>%</strong></span>
-        </div>
-        <div class="stat-row">
-          <span>Avg hunger</span>
-          <span><strong><span id="avgHunger">0</span>%</strong></span>
-        </div>
-        <div class="stat-row">
-          <span>Income rate</span>
-          <span><strong><span id="incomeRate">0</span> / tick</strong></span>
-        </div>
+<!-- LEFT BUTTONS -->
+<div id="feedBtn" class="bubbleBtn">🍤</div>
+<div id="cleanBtn" class="bubbleBtn">🧽</div>
 
-        <button id="addFishBtn">Buy Fish (20 coins)</button>
-        <button id="feedBtn">Feed All (5 coins)</button>
-        <button id="healBtn">Heal Tank (10 coins)</button>
+<!-- RIGHT BUTTONS -->
+<div id="buyBtn" class="bubbleBtn">🐠</div>
+<div id="shopBtn" class="bubbleBtn">🛒</div>
 
-        <p class="hint">
-          Coins are earned automatically from healthy fish. Hunger rises over time,
-          and very hungry fish start to lose health.
-        </p>
-      </div>
-    </div>
-  </div>
+<!-- GLASS FISH INFO PANEL -->
+<div id="fishInfoPanel">
+  <h2 id="fishName">Fish</h2>
+  <p><strong>Health:</strong> <span id="fishHealth"></span>%</p>
+  <p><strong>Hunger:</strong> <span id="fishHunger"></span>%</p>
+  <p><strong>Value:</strong> <span id="fishValue"></span> coins</p>
+  <p><strong>Age:</strong> <span id="fishAge"></span> days</p>
 
-  <script>
-    const levelEl = document.getElementById("level");
-    const xpEl = document.getElementById("xp");
-    const xpMaxEl = document.getElementById("xpMax");
-    const coinsEl = document.getElementById("coins");
-    const fishCountEl = document.getElementById("fishCount");
-    const avgHealthEl = document.getElementById("avgHealth");
-    const avgHungerEl = document.getElementById("avgHunger");
-    const incomeRateEl = document.getElementById("incomeRate");
-    const statusTextEl = document.getElementById("statusText");
+  <div id="closeFishInfo">Close</div>
+</div>
 
-    const addFishBtn = document.getElementById("addFishBtn");
-    const feedBtn = document.getElementById("feedBtn");
-    const healBtn = document.getElementById("healBtn");
-    const fishLayer = document.getElementById("fishLayer");
+<script>
+/* ------------------------------
+   GAME STATE
+--------------------------------*/
+let coins = 80;
+let fishList = [];
+let nextFishId = 1;
 
-    const state = {
-      level: 1,
-      xp: 0,
-      xpMax: 100,
-      coins: 80,
-      fishLimit: 10,
-      fish: [], // {id, health, hunger}
-      nextFishId: 1
-    };
+/* ------------------------------
+   UPDATE COIN DISPLAY
+--------------------------------*/
+function updateCoins() {
+  document.getElementById("coinCount").textContent = coins;
+}
 
-    function clamp(v, min, max) {
-      return v < min ? min : v > max ? max : v;
+/* ------------------------------
+   CREATE A NEW FISH
+--------------------------------*/
+function addFish() {
+  if (coins < 20) return;
+  coins -= 20;
+  updateCoins();
+
+  const id = nextFishId++;
+  const fish = {
+    id,
+    health: 100,
+    hunger: 0,
+    age: 0,
+    value: 10,
+  };
+
+  fishList.push(fish);
+
+  const el = document.createElement("div");
+  el.className = "fish";
+  el.dataset.id = id;
+
+  el.style.top = (20 + Math.random()*60) + "%";
+  el.style.animationDuration = (14 + Math.random()*6) + "s";
+  el.style.animationDelay = -(Math.random()*20) + "s";
+
+  el.addEventListener("click", () => showFishInfo(fish));
+
+  fish.el = el;
+  document.getElementById("fishLayer").appendChild(el);
+}
+
+/* ------------------------------
+   SHOW FISH INFO GLASS PANEL
+--------------------------------*/
+function showFishInfo(fish) {
+  document.getElementById("fishName").textContent = "Fish #" + fish.id;
+  document.getElementById("fishHealth").textContent = fish.health;
+  document.getElementById("fishHunger").textContent = fish.hunger;
+  document.getElementById("fishValue").textContent = fish.value;
+  document.getElementById("fishAge").textContent = fish.age;
+
+  document.getElementById("fishInfoPanel").style.display = "block";
+}
+
+document.getElementById("closeFishInfo").onclick = () => {
+  document.getElementById("fishInfoPanel").style.display = "none";
+};
+
+/* ------------------------------
+   FEED ALL FISH
+--------------------------------*/
+document.getElementById("feedBtn").onclick = () => {
+  if (coins < 5) return;
+  coins -= 5;
+  updateCoins();
+
+  fishList.forEach(f => {
+    f.hunger = Math.max(0, f.hunger - 40);
+  });
+};
+
+/* ------------------------------
+   CLEAN TANK
+--------------------------------*/
+document.getElementById("cleanBtn").onclick = () => {
+  if (coins < 10) return;
+  coins -= 10;
+  updateCoins();
+
+  fishList.forEach(f => {
+    f.health = Math.min(100, f.health + 20);
+  });
+};
+
+/* ------------------------------
+   BUY FISH
+--------------------------------*/
+document.getElementById("buyBtn").onclick = addFish;
+
+/* ------------------------------
+   SHOP BUTTON (empty for now)
+--------------------------------*/
+document.getElementById("shopBtn").onclick = () => {
+  alert("Shop coming soon!");
+};
+
+/* ------------------------------
+   GAME LOOP
+--------------------------------*/
+setInterval(() => {
+  let income = 0;
+
+  fishList.forEach(f => {
+    f.hunger = Math.min(100, f.hunger + 2);
+
+    if (f.hunger > 70) {
+      f.health = Math.max(0, f.health - 2);
     }
 
-    function updateUI(avgHealth = 100, avgHunger = 0, income = 0) {
-      levelEl.textContent = state.level;
-      xpEl.textContent = Math.floor(state.xp);
-      xpMaxEl.textContent = state.xpMax;
-      coinsEl.textContent = Math.floor(state.coins);
-      fishCountEl.textContent = state.fish.length;
-      avgHealthEl.textContent = state.fish.length ? Math.round(avgHealth) : 0;
-      avgHungerEl.textContent = state.fish.length ? Math.round(avgHunger) : 0;
-      incomeRateEl.textContent = income.toFixed(1);
+    income += (f.health / 100) * 0.5;
+  });
 
-      addFishBtn.disabled =
-        state.coins < 20 || state.fish.length >= state.fishLimit;
-      feedBtn.disabled = state.coins < 5 || state.fish.length === 0;
-      healBtn.disabled = state.coins < 10 || state.fish.length === 0;
+  coins += income;
+  updateCoins();
 
-      if (!state.fish.length) {
-        statusTextEl.textContent = "Buy a fish to start your aquarium!";
-      } else if (avgHealth < 50) {
-        statusTextEl.textContent = "Your fish are sick 🐟💊";
-      } else if (avgHunger > 60) {
-        statusTextEl.textContent = "Your fish are very hungry 🍽️";
-      } else {
-        statusTextEl.textContent = "Your fish are doing well 🐠";
-      }
-    }
+}, 1000);
 
-    function levelUpCheck() {
-      while (state.xp >= state.xpMax) {
-        state.xp -= state.xpMax;
-        state.level += 1;
-        state.xpMax = Math.round(state.xpMax * 1.35);
-      }
-    }
+/* ------------------------------
+   START WITH TWO FISH
+--------------------------------*/
+addFish();
+addFish();
+</script>
 
-    function createFishElement(id) {
-      const el = document.createElement("div");
-      el.className = "fish";
-
-      const topPercent = 20 + Math.random() * 40;
-      el.style.top = topPercent + "%";
-
-      const duration = 14 + Math.random() * 8;
-      el.style.animationDuration = duration + "s";
-
-      const delay = -Math.random() * duration;
-      el.style.animationDelay = delay + "s";
-
-      const hue = Math.floor(Math.random() * 360);
-      el.style.background = `
-        radial-gradient(circle at 20% 50%, rgba(255,255,255,0.7), transparent 55%),
-        linear-gradient(90deg, hsl(${hue}, 90%, 65%), hsl(${(hue + 40) % 360}, 90%, 60%), hsl(${(hue + 70) % 360}, 90%, 55%))
-      `;
-
-      el.dataset.id = id;
-      fishLayer.appendChild(el);
-    }
-
-    function addFish() {
-      if (state.coins < 20 || state.fish.length >= state.fishLimit) return;
-      state.coins -= 20;
-
-      const id = state.nextFishId++;
-      state.fish.push({
-        id,
-        health: 100,
-        hunger: 0
-      });
-      createFishElement(id);
-      state.xp += 10;
-      levelUpCheck();
-      updateUI();
-    }
-
-    function feedAll() {
-      if (state.coins < 5 || !state.fish.length) return;
-      state.coins -= 5;
-      state.fish.forEach(f => {
-        f.hunger = clamp(f.hunger - 45, 0, 100);
-      });
-      state.xp += 5;
-      levelUpCheck();
-      updateUI();
-    }
-
-    function healAll() {
-      if (state.coins < 10 || !state.fish.length) return;
-      state.coins -= 10;
-      state.fish.forEach(f => {
-        f.health = clamp(f.health + 40, 0, 100);
-      });
-      state.xp += 8;
-      levelUpCheck();
-      updateUI();
-    }
-
-    addFishBtn.addEventListener("click", addFish);
-    feedBtn.addEventListener("click", feedAll);
-    healBtn.addEventListener("click", healAll);
-
-    const TICK_MS = 1000;
-
-    function tick() {
-      if (!state.fish.length) {
-        updateUI(100, 0, 0);
-        return;
-      }
-
-      let totalHealth = 0;
-      let totalHunger = 0;
-      let income = 0;
-
-      state.fish.forEach(f => {
-        f.hunger = clamp(f.hunger + 4, 0, 100);
-
-        if (f.hunger > 70) {
-          f.health = clamp(f.health - 3, 0, 100);
-        } else if (f.hunger < 40) {
-          f.health = clamp(f.health + 1.5, 0, 100);
-        }
-
-        totalHealth += f.health;
-        totalHunger += f.hunger;
-
-        income += (f.health / 100) * 0.8;
-      });
-
-      const avgHealth = totalHealth / state.fish.length;
-      const avgHunger = totalHunger / state.fish.length;
-
-      state.coins += income;
-      state.xp += income * 0.5;
-      levelUpCheck();
-
-      updateUI(avgHealth, avgHunger, income);
-    }
-
-    addFish();
-    addFish();
-
-    updateUI();
-    setInterval(tick, TICK_MS);
-  </script>
 </body>
 </html>
