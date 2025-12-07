@@ -117,7 +117,6 @@
       pointer-events: none;
       overflow: hidden;
     }
-
     #bubblesLeft  { left: 8vw; }
     #bubblesCenter{ left: 150vw; }
     #bubblesRight { right: 8vw; }
@@ -176,7 +175,7 @@
     /* REALISTIC GUPPY SPRITE */
     .fish {
       position: absolute;
-      width: 140px;                /* tweak if too big/small */
+      width: 140px;                /* adjust if too big/small */
       height: 80px;
       background-image: url("guppy1.PNG");
       background-size: contain;
@@ -328,7 +327,9 @@
   </div>
 
   <script>
-    // basic state
+    // ------------------------------
+    // BASIC STATE
+    // ------------------------------
     let coins = 80;
     const coinCountEl = document.getElementById("coinCount");
 
@@ -352,7 +353,9 @@
     const buyBtn   = document.getElementById("buyBtn");
     const shopBtn  = document.getElementById("shopBtn");
 
-    // camera
+    // ------------------------------
+    // CAMERA: PAN + ZOOM
+    // ------------------------------
     let camX = 0, camY = 0, camScale = 1.0;
     const MIN_SCALE = 0.8, MAX_SCALE = 2.2;
     let isDragging = false;
@@ -366,7 +369,6 @@
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const worldWidth  = getWorldWidth()  * camScale;
-      const worldHeight = getWorldHeight() * camScale;
 
       const minX = vw - worldWidth;
       const maxX = 0;
@@ -376,7 +378,7 @@
         camX = Math.max(minX, Math.min(maxX, camX));
       }
 
-      const verticalRange = vh * 0.06; // small up/down
+      const verticalRange = vh * 0.06;
       const minY = -verticalRange;
       const maxY =  verticalRange;
       camY = Math.max(minY, Math.min(maxY, camY));
@@ -462,6 +464,9 @@
     });
     window.addEventListener("mouseup", () => { isDragging = false; });
 
+    // ------------------------------
+    // MONEY / UI
+    // ------------------------------
     function updateCoins() {
       coinCountEl.textContent = Math.floor(coins);
     }
@@ -470,13 +475,15 @@
       return min + Math.random() * (max - min);
     }
 
-    // create guppy
+    // ------------------------------
+    // FISH CREATION (REALISTIC GUPPY)
+    // ------------------------------
     function createFish() {
       if (coins < 20) return;
       coins -= 20;
       updateCoins();
 
-      const worldWidth = getWorldWidth();
+      const worldWidth  = getWorldWidth();
       const worldHeight = getWorldHeight();
 
       const id = nextFishId++;
@@ -489,17 +496,17 @@
         : randomBetween(22, 32);
 
       const sizeScale = randomBetween(0.8, 1.15);
+      const direction = Math.random() < 0.5 ? 1 : -1; // 1 = right, -1 = left
 
       const fish = {
         id,
         x,
         y,
-        angle: Math.random() * Math.PI * 2,
-        targetAngle: Math.random() * Math.PI * 2,
-        displayAngle: 0,
+        direction,
         baseSpeed,
         personality,
-        turnTimer: randomBetween(1.5, 4),
+        targetY: y,
+        verticalTimer: randomBetween(0.5, 2.5),
         health: 100,
         hunger: 0,
         age: 0,
@@ -512,13 +519,16 @@
       el.className = "fish";
       el.style.left = `${fish.x}px`;
       el.style.top  = `${fish.y}px`;
+      el.addEventListener("click", () => showFishInfo(fish));
 
       fish.el = el;
       fishLayerEl.appendChild(el);
       fishList.push(fish);
     }
 
-    // fish info panel
+    // ------------------------------
+    // FISH INFO PANEL
+    // ------------------------------
     function showFishInfo(fish) {
       fishNameEl.textContent   = `Guppy #${fish.id} (${fish.personality})`;
       fishHealthEl.textContent = Math.round(fish.health);
@@ -531,16 +541,9 @@
       fishInfoPanel.style.display = "none";
     });
 
-    // hook fish click
-    fishLayerEl.addEventListener("click", (e) => {
-      const target = e.target.closest(".fish");
-      if (!target) return;
-      const id = Number(target.dataset.id);
-      const fish = fishList.find(f => f.id === id);
-      if (fish) showFishInfo(fish);
-    });
-
-    // buttons
+    // ------------------------------
+    // BUTTONS
+    // ------------------------------
     feedBtn.addEventListener("click", () => {
       if (coins < 5 || fishList.length === 0) return;
       coins -= 5;
@@ -562,80 +565,67 @@
     buyBtn.addEventListener("click", () => { createFish(); });
     shopBtn.addEventListener("click", () => { alert("Shop coming soon!"); });
 
-    // fish movement
-    function shortestAngleDelta(a, b) {
-      let diff = b - a;
-      while (diff >  Math.PI) diff -= Math.PI * 2;
-      while (diff < -Math.PI) diff += Math.PI * 2;
-      return diff;
-    }
-
+    // ------------------------------
+    // FISH MOVEMENT (LEFT/RIGHT + DRIFT)
+    // ------------------------------
     function updateFishMovement(dt) {
       const worldWidth  = getWorldWidth();
       const worldHeight = getWorldHeight();
 
       for (const f of fishList) {
-        const steerStrength = (f.personality === "calm" ? 0.4 : 0.8);
-        const turnSpeed = steerStrength * dt;
-
-        f.turnTimer -= dt;
-        if (f.turnTimer <= 0) {
-          const spread = (f.personality === "calm" ? Math.PI / 5 : Math.PI / 3);
-          const randomOffset = (Math.random() - 0.5) * spread;
-          f.targetAngle = f.angle + randomOffset;
-          f.turnTimer = randomBetween(1.0, 3.5);
-        }
-
-        const delta = shortestAngleDelta(f.angle, f.targetAngle);
-        f.angle += delta * turnSpeed;
-
+        // Horizontal swim (only left/right)
         const speed = f.baseSpeed * (0.6 + (f.health / 200));
-        f.x += Math.cos(f.angle) * speed * dt;
-        f.y += Math.sin(f.angle) * speed * dt;
+        f.x += f.direction * speed * dt;
 
-        const marginX = 100;
-        const marginTop = 60;
-        const marginBottom = 90;
-
-        let bounced = false;
-
+        const marginX = 120;
         if (f.x < marginX) {
           f.x = marginX;
-          f.targetAngle = Math.random() * Math.PI - Math.PI / 2;
-          bounced = true;
+          f.direction = 1;  // turn right
         } else if (f.x > worldWidth - marginX) {
           f.x = worldWidth - marginX;
-          f.targetAngle = Math.random() * Math.PI + Math.PI / 2;
-          bounced = true;
+          f.direction = -1; // turn left
         }
 
-        if (f.y < marginTop) {
-          f.y = marginTop;
-          f.targetAngle = (Math.random() * Math.PI) + Math.PI / 2;
-          bounced = true;
-        } else if (f.y > worldHeight - marginBottom) {
-          f.y = worldHeight - marginBottom;
-          f.targetAngle = (Math.random() * Math.PI) - Math.PI / 2;
-          bounced = true;
+        // Vertical "comfort band"
+        const bandTop    = worldHeight * 0.2;
+        const bandBottom = worldHeight * 0.85;
+
+        f.verticalTimer -= dt;
+        if (f.verticalTimer <= 0) {
+          const jitter = (Math.random() - 0.5) *
+            (f.personality === "calm" ? 60 : 120);
+          let newTarget = f.y + jitter;
+          newTarget = Math.max(bandTop, Math.min(bandBottom, newTarget));
+          f.targetY = newTarget;
+          f.verticalTimer = randomBetween(1.0, 3.0);
         }
 
-        if (bounced) {
-          f.turnTimer = randomBetween(0.5, 1.3);
+        const verticalSpeed = f.personality === "calm" ? 25 : 40;
+        const dy = f.targetY - f.y;
+        const maxStep = verticalSpeed * dt;
+        if (Math.abs(dy) <= maxStep) {
+          f.y = f.targetY;
+        } else {
+          f.y += Math.sign(dy) * maxStep;
         }
 
-        // smooth visual angle
-        const angDelta = shortestAngleDelta(f.displayAngle, f.angle);
-        f.displayAngle += angDelta * Math.min(5 * dt, 1); // smoothing factor
+        if (f.y < 40) { f.y = 40; f.targetY = f.y; }
+        if (f.y > worldHeight - 80) { f.y = worldHeight - 80; f.targetY = f.y; }
+
+        // Small tilt based on vertical movement (nose up/down slightly)
+        const tilt = Math.max(-12, Math.min(12, -dy * 0.12));
+        const flip = f.direction === 1 ? 1 : -1;
 
         f.el.style.left = `${f.x}px`;
         f.el.style.top  = `${f.y}px`;
-        const deg = f.displayAngle * 180 / Math.PI;
-        f.el.style.transform = `rotate(${deg}deg) scale(${f.sizeScale || 1})`;
-        f.el.dataset.id = f.id;
+        f.el.style.transform =
+          `scale(${f.sizeScale}) scaleX(${flip}) rotate(${tilt}deg)`;
       }
     }
 
-    // logic tick
+    // ------------------------------
+    // LOGIC TICK: HUNGER / HEALTH / COINS
+    // ------------------------------
     let logicAccumulator = 0;
     function logicTick() {
       let income = 0;
@@ -656,7 +646,9 @@
       updateCoins();
     }
 
-    // main loop
+    // ------------------------------
+    // MAIN LOOP
+    // ------------------------------
     let lastTime = null;
     function frame(ts) {
       if (lastTime == null) lastTime = ts;
@@ -674,6 +666,9 @@
       requestAnimationFrame(frame);
     }
 
+    // ------------------------------
+    // INIT
+    // ------------------------------
     function initGame() {
       updateCoins();
       camScale = 1.0;
